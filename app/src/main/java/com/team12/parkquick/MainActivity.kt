@@ -71,7 +71,7 @@ fun ParkQuickApp() {
         ) {
 
             composable("home") {
-                HomeScreen()
+                HomeScreen(navController)
             }
 
             composable("history") {
