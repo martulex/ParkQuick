@@ -127,7 +127,7 @@ fun BottomNavigationBar(navController: NavHostController) {
 }
 
 @Composable
-fun HomeScreen() {
+fun HomeScreen(navController: NavHostController) {
 
     Column(
         modifier = Modifier
