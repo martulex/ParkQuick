@@ -147,6 +147,7 @@ fun HomeScreen(navController: NavHostController) {
         Button(
             onClick = {
                 // TODO: Add parking location logic
+                navController.navigate("add_parking")
             },
             modifier = Modifier.fillMaxWidth()
         ) {
