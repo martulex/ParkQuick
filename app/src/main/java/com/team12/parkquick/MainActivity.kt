@@ -155,7 +155,18 @@ fun HomeScreen(navController: NavHostController) {
         }
     }
 }
-
+@Composable
+fun AddParkingScreen(navController : NavHostController) {
+    Box(
+        modifier = Modifier.fillMaxSize(),
+        contentAlignment = Alignment.Center
+    ) {
+        Text(
+            text = "Add Parking Screen",
+            style = MaterialTheme.typography.headlineSmall
+        )
+    }
+}
 @Composable
 fun HistoryScreen() {
 
