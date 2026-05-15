@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Settings
@@ -35,6 +36,10 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.team12.parkquick.ui.theme.ParkQuickTheme
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.CenterAlignedTopAppBar
+import androidx.compose.runtime.getValue
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -59,6 +64,9 @@ fun ParkQuickApp() {
     val navController = rememberNavController()
 
     Scaffold(
+        topBar = {
+            ParkQuickTopBar(navController = navController)
+        },
         bottomBar = {
             BottomNavigationBar(navController)
         }
@@ -85,6 +93,38 @@ fun ParkQuickApp() {
             }
         }
     }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun ParkQuickTopBar(navController: NavHostController) {
+    // Aktuellen Stand der Navigation abrufen
+    val navBackStackEntry by navController.currentBackStackEntryAsState()
+    val currentRoute = navBackStackEntry?.destination?.route
+    val canNavigateBack = navController.previousBackStackEntry != null && currentRoute == "add_parking"
+
+    CenterAlignedTopAppBar(
+        title = {
+            val title = when (currentRoute) {
+                "home" -> "Home"
+                "add_parking" -> "Add Parking Spot"
+                "history" -> "History"
+                "settings" -> "Settings"
+                else -> "ParkQuick"
+            }
+            Text(text = title)
+        },
+        navigationIcon = {
+            if (canNavigateBack) {
+                IconButton(onClick = { navController.navigateUp() }) {
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                        contentDescription = "Back"
+                    )
+                }
+            }
+        }
+    )
 }
 
 @Composable
