@@ -4,19 +4,29 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.Map
+import androidx.compose.material.icons.filled.PhotoCamera
 import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material3.AssistChip
 import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -39,7 +49,14 @@ import com.team12.parkquick.ui.theme.ParkQuickTheme
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.CenterAlignedTopAppBar
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -60,22 +77,26 @@ class MainActivity : ComponentActivity() {
 
 @Composable
 fun ParkQuickApp() {
-
+    // navController für die Navigation im System (remember um auch bei Änderungen (z.B. drehen des Bildschirms, "neu zeichnen" des Canvas
+    // zu wissen, wo man ist und wohin man gehen kann)
     val navController = rememberNavController()
 
     Scaffold(
         topBar = {
-            ParkQuickTopBar(navController = navController)
+            ParkQuickTopBar(navController)
         },
         bottomBar = {
             BottomNavigationBar(navController)
         }
-    ) { innerPadding ->
+    ) { innerPadding -> // Lokale Variable die automatisch das padding der Scaffold Elemente enthält (Kotlin Regeln)
+        // und dann der nächsten Zeile weitergegeben werden kann.
+
+        // Über den NavHost wird immer der Bildschirm eingeblendet, den der navController auswählt.
 
         NavHost(
             navController = navController,
             startDestination = "home",
-            modifier = Modifier.padding(innerPadding)
+            modifier = Modifier.padding(innerPadding) // Screen fängt unter der TopBar an und hört über der BottomBar auf
         ) {
 
             composable("home") {
@@ -99,9 +120,9 @@ fun ParkQuickApp() {
 @Composable
 fun ParkQuickTopBar(navController: NavHostController) {
     // Aktuellen Stand der Navigation abrufen
-    val navBackStackEntry by navController.currentBackStackEntryAsState()
-    val currentRoute = navBackStackEntry?.destination?.route
-    val canNavigateBack = navController.previousBackStackEntry != null && currentRoute == "add_parking"
+    val navBackStackEntry = navController.currentBackStackEntryAsState().value // Der "live aktualisierte" Eintrag der aktuell ganz oben auf dem Backstack Stapel liegt
+    val currentRoute = navBackStackEntry?.destination?.route // Name der aktuellen Seite
+    val canNavigateBack = navController.previousBackStackEntry != null && currentRoute == "add_parking" // Bestimmt, ob man zurückgehen kann oder nicht (wichtig für den Pfeil)
 
     CenterAlignedTopAppBar(
         title = {
@@ -119,7 +140,7 @@ fun ParkQuickTopBar(navController: NavHostController) {
                 IconButton(onClick = { navController.navigateUp() }) {
                     Icon(
                         imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                        contentDescription = "Back"
+                        contentDescription = "Back" // Accessibility
                     )
                 }
             }
@@ -148,8 +169,8 @@ fun BottomNavigationBar(navController: NavHostController) {
                 onClick = {
                     navController.navigate(item.route) {
 
-                        popUpTo(navController.graph.startDestinationId)
-                        launchSingleTop = true
+                        popUpTo(navController.graph.startDestinationId) // Verhindern das sich der Speicher mit unendlich vielen alten Screens füllt, wenn man zum Beispiel mehrmals auf History oder hin und her klickt.
+                        launchSingleTop = true // gleiche auswahl / screens werden nicht mehrfach übereinander geworfen
                     }
                 },
                 icon = {
@@ -186,7 +207,6 @@ fun HomeScreen(navController: NavHostController) {
 
         Button(
             onClick = {
-                // TODO: Add parking location logic
                 navController.navigate("add_parking")
             },
             modifier = Modifier.fillMaxWidth()
@@ -195,16 +215,94 @@ fun HomeScreen(navController: NavHostController) {
         }
     }
 }
+
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AddParkingScreen(navController : NavHostController) {
-    Box(
-        modifier = Modifier.fillMaxSize(),
-        contentAlignment = Alignment.Center
+fun AddParkingScreen(navController: NavHostController) {
+    var notes by remember { mutableStateOf("") }
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(16.dp)
+            .verticalScroll(rememberScrollState()),
+        verticalArrangement = Arrangement.spacedBy(20.dp)
     ) {
-        Text(
-            text = "Add Parking Screen",
-            style = MaterialTheme.typography.headlineSmall
+        // Location: Karte wird direkt als Vorschau angezeigt
+        Text(text = "Location", style = MaterialTheme.typography.titleMedium)
+
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(150.dp)
+                .clip(RoundedCornerShape(12.dp))
+                .background(Color.LightGray),
+            contentAlignment = Alignment.Center
+        ) {
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                Icon(
+                    imageVector = Icons.Default.Map,
+                    contentDescription = null,
+                    modifier = Modifier.size(40.dp),
+                    tint = Color.Gray
+                )
+                Spacer(modifier = Modifier.height(12.dp))
+
+                Text("Map Preview", color = Color.Gray)
+            }
+        }
+
+        // Timer: Schnellauswahl für Zeiten
+        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+
+            Text(text = "Set Timer", style = MaterialTheme.typography.titleMedium)
+
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                AssistChip(onClick = { /* Set 30 min */ }, label = { Text("30m") })
+                AssistChip(onClick = { /* Set 1h */ }, label = { Text("1h") })
+                AssistChip(onClick = { /* Set 2h */ }, label = { Text("2h") })
+                AssistChip(onClick = { /* Set Custom Timer */ }, label = { Text("Custom")})
+            }
+        }
+
+        // Photo Sektion
+        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            Text(text = "Photo", style = MaterialTheme.typography.titleMedium)
+
+                OutlinedButton(
+                    onClick = { /* Open Camera */ },
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Icon(Icons.Default.PhotoCamera, contentDescription = null)
+                    Spacer(Modifier.width(8.dp))
+                    Text("Take Photo")
+                }
+
+        }
+
+        // 4. NOTES
+        OutlinedTextField(
+            value = notes, // Das Textfeld schaut in die Merkzelle notes und zeigt dem Nutzer immer genau den Text an, der dort gerade abgespeichert ist.
+            onValueChange = { notes = it }, // Jedes Mal, wenn der Nutzer eine Taste drückt, fängt Android den neuen Text ab (it) und speichert ihn sofort in notes ab, damit der Bildschirm sich mit dem neuen Buchstaben aktualisieren kann.
+            label = { Text("Notes (e.g. Floor, Pillar number)") },
+            modifier = Modifier.fillMaxWidth(),
+            minLines = 3
         )
+
+        Spacer(modifier = Modifier.height(24.dp))
+
+        // Bestätigen
+        Button(
+            onClick = {
+                // TODO: Daten speichern
+                navController.popBackStack()
+            },
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Text("Save Parking Spot")
+        }
     }
 }
 @Composable
