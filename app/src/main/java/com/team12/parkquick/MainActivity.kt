@@ -21,13 +21,18 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Map
 import androidx.compose.material.icons.filled.PhotoCamera
+import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.AssistChip
 import androidx.compose.material3.Button
+import androidx.compose.material3.Card
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
@@ -340,5 +345,70 @@ fun SettingsScreen() {
 fun ParkQuickAppPreview() {
     ParkQuickTheme {
         ParkQuickApp()
+    }
+}
+
+@Composable
+fun ParkingCard(name: String, remainingTime: String, onRouteClick: () -> Unit) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(8.dp),
+    ) {
+        Column() {
+            Text(
+                text = name,
+                style = MaterialTheme.typography.titleMedium
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+            // Ein Viereck, das den gespeicherten Ort zeigt (Platzhalter)
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(140.dp)
+                    .background(
+                        color = MaterialTheme.colorScheme.primaryContainer,
+                        shape = MaterialTheme.shapes.small
+                    ),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    imageVector = Icons.Default.LocationOn,
+                    contentDescription = "Standort",
+                    tint = MaterialTheme.colorScheme.onPrimaryContainer
+                )
+            }
+            Row(
+                modifier = Modifier
+                    .padding(8.dp)
+                    .fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                // Timer Text
+                Text(
+                    text = remainingTime,
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = MaterialTheme.colorScheme.primary
+                )
+                Button(onClick = onRouteClick) {
+                    Text(text = "Route to my car")
+                }
+            }
+
+        }
+
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun ParkingCardPreview() {
+    ParkQuickTheme {
+        ParkingCard(
+            name = "Zentrum Parkplatz",
+            remainingTime = "00:45:00",
+            onRouteClick = {}
+        )
     }
 }
