@@ -25,9 +25,11 @@ import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Map
 import androidx.compose.material.icons.filled.PhotoCamera
+import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.AssistChip
 import androidx.compose.material3.Button
+import androidx.compose.material3.Card
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
@@ -52,6 +54,7 @@ import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -191,30 +194,76 @@ fun BottomNavigationBar(navController: NavHostController) {
 @Composable
 fun HomeScreen(navController: NavHostController) {
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(24.dp),
-        verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-
-        Text(
-            text = "ParkQuick",
-            style = MaterialTheme.typography.headlineMedium
+    //Aktuellen Parkplätze Testdaten
+    val parkings = remember {
+        mutableStateListOf(
+            Parking(
+                id = "1",
+                name = "Auto vor TH Köln",
+                remainingTime = "00:12:45"
+            ),
+            Parking(
+                id = "2",
+                name = "Supermarkt Parkplatz",
+                remainingTime = "00:45:10"
+            )
         )
+    }
 
-        Spacer(modifier = Modifier.height(32.dp))
-
-        Button(
-            onClick = {
-                navController.navigate("add_parking")
-            },
-            modifier = Modifier.fillMaxWidth()
+    if(parkings.isEmpty()) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(16.dp),
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Text(text = "Add Parking Spot")
+            Text(
+                text = "ParkQuick",
+                style = MaterialTheme.typography.headlineMedium
+            )
+
+            Spacer(modifier = Modifier.height(32.dp))
+
+            Button(
+                onClick = {
+                    navController.navigate("add_parking")
+                },
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text(text = "Add Parking Spot")
+            }
+        }
+    } else {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            parkings.forEach { parking ->
+
+                ParkingCard(
+                    name = parking.name,
+                    remainingTime = parking.remainingTime,
+                    onRouteClick = {
+                        // später Navigation / Maps
+                    }
+                )
+            }
+            Spacer(modifier = Modifier.height(8.dp))
+
+            Button(
+                onClick = {
+                    navController.navigate("add_parking")
+                },
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text(text = "Add Parking Spot")
+            }
         }
     }
+
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -327,5 +376,70 @@ fun SettingsScreen() {
 fun ParkQuickAppPreview() {
     ParkQuickTheme {
         ParkQuickApp()
+    }
+}
+
+@Composable
+fun ParkingCard(name: String, remainingTime: String, onRouteClick: () -> Unit) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(8.dp),
+    ) {
+        Column(modifier = Modifier.padding(8.dp)) {
+            Text(
+                text = name,
+                style = MaterialTheme.typography.titleMedium
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+            // Ein Viereck, das den gespeicherten Ort zeigt (Platzhalter)
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(140.dp)
+                    .background(
+                        color = MaterialTheme.colorScheme.primaryContainer,
+                        shape = MaterialTheme.shapes.small
+                    ),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    imageVector = Icons.Default.LocationOn,
+                    contentDescription = "Standort",
+                    tint = MaterialTheme.colorScheme.onPrimaryContainer
+                )
+            }
+            Row(
+                modifier = Modifier
+                    .padding(8.dp)
+                    .fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                // Timer Text
+                Text(
+                    text = remainingTime,
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = MaterialTheme.colorScheme.primary
+                )
+                Button(onClick = onRouteClick) {
+                    Text(text = "Route to my car")
+                }
+            }
+
+        }
+
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun ParkingCardPreview() {
+    ParkQuickTheme {
+        ParkingCard(
+            name = "Zentrum Parkplatz",
+            remainingTime = "00:45:00",
+            onRouteClick = {}
+        )
     }
 }
