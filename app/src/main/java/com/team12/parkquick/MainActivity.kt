@@ -57,6 +57,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import com.team12.parkquick.ui.ParkingHistoryScreen
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -106,7 +107,7 @@ fun ParkQuickApp() {
                 AddParkingScreen(navController)
             }
             composable("history") {
-                HistoryScreen()
+                ParkingHistoryScreen()
             }
 
             composable("settings") {
@@ -303,20 +304,6 @@ fun AddParkingScreen(navController: NavHostController) {
         ) {
             Text("Save Parking Spot")
         }
-    }
-}
-@Composable
-fun HistoryScreen() {
-
-    Box(
-        modifier = Modifier.fillMaxSize(),
-        contentAlignment = Alignment.Center
-    ) {
-
-        Text(
-            text = "History Screen",
-            style = MaterialTheme.typography.headlineSmall
-        )
     }
 }
 
