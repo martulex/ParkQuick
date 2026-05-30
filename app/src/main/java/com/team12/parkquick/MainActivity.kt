@@ -21,9 +21,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Map
@@ -57,6 +54,7 @@ import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -195,30 +193,76 @@ fun BottomNavigationBar(navController: NavHostController) {
 @Composable
 fun HomeScreen(navController: NavHostController) {
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(24.dp),
-        verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-
-        Text(
-            text = "ParkQuick",
-            style = MaterialTheme.typography.headlineMedium
+    //Aktuellen Parkplätze Testdaten
+    val parkings = remember {
+        mutableStateListOf(
+            Parking(
+                id = "1",
+                name = "Auto vor TH Köln",
+                remainingTime = "00:12:45"
+            ),
+            Parking(
+                id = "2",
+                name = "Supermarkt Parkplatz",
+                remainingTime = "00:45:10"
+            )
         )
+    }
 
-        Spacer(modifier = Modifier.height(32.dp))
-
-        Button(
-            onClick = {
-                navController.navigate("add_parking")
-            },
-            modifier = Modifier.fillMaxWidth()
+    if(parkings.isEmpty()) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(16.dp),
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Text(text = "Add Parking Spot")
+            Text(
+                text = "ParkQuick",
+                style = MaterialTheme.typography.headlineMedium
+            )
+
+            Spacer(modifier = Modifier.height(32.dp))
+
+            Button(
+                onClick = {
+                    navController.navigate("add_parking")
+                },
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text(text = "Add Parking Spot")
+            }
+        }
+    } else {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            parkings.forEach { parking ->
+
+                ParkingCard(
+                    name = parking.name,
+                    remainingTime = parking.remainingTime,
+                    onRouteClick = {
+                        // später Navigation / Maps
+                    }
+                )
+            }
+            Spacer(modifier = Modifier.height(8.dp))
+
+            Button(
+                onClick = {
+                    navController.navigate("add_parking")
+                },
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text(text = "Add Parking Spot")
+            }
         }
     }
+
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -355,7 +399,7 @@ fun ParkingCard(name: String, remainingTime: String, onRouteClick: () -> Unit) {
             .fillMaxWidth()
             .padding(8.dp),
     ) {
-        Column() {
+        Column(modifier = Modifier.padding(8.dp)) {
             Text(
                 text = name,
                 style = MaterialTheme.typography.titleMedium
