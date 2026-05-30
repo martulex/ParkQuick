@@ -1,4 +1,4 @@
-package com.team12.parkquick.ui
+package com.team12.parkquick.ui.screens
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -21,37 +21,44 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-
-data class ParkingHistory(
-    val location: String,
-    val date: String,
-    val time: String,
-    val duration: String
-)
+import com.team12.parkquick.data.Parking
+import com.team12.parkquick.ui.theme.ParkQuickTheme
+import com.team12.parkquick.ui.components.ParkingCard
+import com.team12.parkquick.utilities.TimeFormatter
+import java.time.LocalDateTime
 
 @Composable
 fun ParkingHistoryScreen() {
 
     val historyList = listOf(
-        ParkingHistory(
-            "Cologne City Center",
-            "20.05.2026",
-            "10:30 - 12:15",
-            "1h 45min"
+        Parking(
+            id = "1",
+            name = "Flughafen Köln",
+            latitude = 50.8659,
+            longitude = 7.1427,
+            parkTime = LocalDateTime.now(),
+            pickupTime = LocalDateTime.now().plusDays(2)
         ),
-        ParkingHistory(
-            "University Parking",
-            "18.05.2026",
-            "08:10 - 11:40",
-            "3h 30min"
+
+        Parking(
+            id = "2",
+            name = "Zuhause Parkplatz",
+            latitude = 51.0276,
+            longitude = 7.5654,
+            parkTime = LocalDateTime.now().minusHours(5),
+            pickupTime = LocalDateTime.now().plusHours(10)
         ),
-        ParkingHistory(
-            "Shopping Mall",
-            "15.05.2026",
-            "17:20 - 18:05",
-            "45min"
+
+        Parking(
+            id = "3",
+            name = "Bahnhof Gummersbach",
+            latitude = 51.0260,
+            longitude = 7.5660,
+            parkTime = LocalDateTime.now(),
+            pickupTime = LocalDateTime.now().plusHours(6)
         )
     )
 
@@ -64,13 +71,16 @@ fun ParkingHistoryScreen() {
     ) {
 
         items(historyList) { item ->
-            ParkingHistoryCard(item)
+            ParkingCard(
+                parking = item,
+                isActive = false
+            )
         }
     }
 }
 
 @Composable
-fun ParkingHistoryCard(item: ParkingHistory) {
+fun ParkingHistoryCard(item: Parking) {
 
     Card(
         modifier = Modifier.fillMaxWidth(),
@@ -103,16 +113,24 @@ fun ParkingHistoryCard(item: ParkingHistory) {
             Spacer(modifier = Modifier.height(12.dp))
 
             Text(
-                text = item.location,
+                text = item.name,
                 fontSize = 20.sp,
                 fontWeight = FontWeight.Bold
             )
 
             Spacer(modifier = Modifier.height(6.dp))
 
-            Text(text = "Date: ${item.date}")
-            Text(text = "Time: ${item.time}")
-            Text(text = "Duration: ${item.duration}")
+            Text(text = "Park time: ${item.parkTime}")
+            Text(text = "Pickup time: ${item.pickupTime}")
+            Text(text = "Duration: ${TimeFormatter.formatRemainingTime(item.parkTime, item.pickupTime)}")
         }
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun ParkingHistoryPreview() {
+    ParkQuickTheme {
+        ParkingHistoryScreen()
     }
 }
