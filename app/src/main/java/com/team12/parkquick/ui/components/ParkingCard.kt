@@ -22,62 +22,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.team12.parkquick.data.Parking
-import com.team12.parkquick.ui.theme.ParkQuickTheme
 import com.team12.parkquick.utilities.TimeFormatter
 import java.time.LocalDateTime
 
-//@Composable
-//fun ParkingCard(name: String, remainingTime: String, onRouteClick: () -> Unit) {
-//    Card(
-//        modifier = Modifier
-//            .fillMaxWidth()
-//            .padding(8.dp),
-//    ) {
-//        Column(modifier = Modifier.padding(8.dp)) {
-//            Text(
-//                text = name,
-//                style = MaterialTheme.typography.titleMedium
-//            )
-//            Spacer(modifier = Modifier.height(8.dp))
-//            // Ein Viereck, das den gespeicherten Ort zeigt (Platzhalter)
-//            Box(
-//                modifier = Modifier
-//                    .fillMaxWidth()
-//                    .height(140.dp)
-//                    .background(
-//                        color = MaterialTheme.colorScheme.primaryContainer,
-//                        shape = MaterialTheme.shapes.small
-//                    ),
-//                contentAlignment = Alignment.Center
-//            ) {
-//                Icon(
-//                    imageVector = Icons.Default.LocationOn,
-//                    contentDescription = "Standort",
-//                    tint = MaterialTheme.colorScheme.onPrimaryContainer
-//                )
-//            }
-//            Row(
-//                modifier = Modifier
-//                    .padding(8.dp)
-//                    .fillMaxWidth(),
-//                verticalAlignment = Alignment.CenterVertically,
-//                horizontalArrangement = Arrangement.SpaceBetween
-//            ) {
-//                // Timer Text
-//                Text(
-//                    text = remainingTime,
-//                    style = MaterialTheme.typography.bodyLarge,
-//                    color = MaterialTheme.colorScheme.primary
-//                )
-//                Button(onClick = onRouteClick) {
-//                    Text(text = "Route to my car")
-//                }
-//            }
-//
-//        }
-//
-//    }
-//}
 @Composable
 fun ParkingCard(
     parking: Parking,
