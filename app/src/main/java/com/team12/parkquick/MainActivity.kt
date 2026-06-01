@@ -144,12 +144,21 @@ fun BottomNavigationBar(navController: NavHostController) {
             NavigationBarItem(
                 selected = currentRoute == item.route,
                 onClick = {
+
+                    if(currentRoute != item.route) { // verhindert flackerndes nachladen wenn man schon auf dem screen ist
+
                     navController.navigate(item.route) {
 
-                        popUpTo(navController.graph.startDestinationId) // Verhindern das sich der Speicher mit unendlich vielen alten Screens füllt, wenn man zum Beispiel mehrmals auf History oder hin und her klickt.
-                        launchSingleTop = true // gleiche auswahl / screens werden nicht mehrfach übereinander geworfen
+                        popUpTo(navController.graph.startDestinationId) {
+                            saveState = true
+                        } /* // Räumt den Stack bis zum Homescreen auf, damit sich der Speicher nicht füllt.
+                                Alles zwischen dem Homescreen und dem neuen Ziel wird vom Stack gelöscht.
+                        mit saveState wird der Zustand des screens gespeichert (z.B. Scrollposition)*/
+
+                        launchSingleTop = true // verhindert, dass das gleiche Ziel mehrfach oben auf dem Stack landet
+                        restoreState = true // screen wird wieder so aufgerufen wie man ihn verlassen hat (scrollposition etc.)
                     }
-                },
+                }},
                 icon = {
                     Icon(
                         imageVector = item.icon,
