@@ -15,29 +15,17 @@ import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
+import androidx.navigation.compose.rememberNavController
 import com.team12.parkquick.data.Parking
 import com.team12.parkquick.ui.components.ParkingCard
-import com.team12.parkquick.utilities.TimeFormatter
+import com.team12.parkquick.ui.theme.ParkQuickTheme
 import java.time.LocalDateTime
 
 @Composable
-fun HomeScreen(onNavigateToAddParking: () -> Unit) {
-
-    //Aktuellen Parkplätze Testdaten
-    val parkings = remember {
-        mutableStateListOf(
-            Parking(
-                id = "3",
-                name = "Bahnhof Gummersbach",
-                latitude = 51.0260,
-                longitude = 7.5660,
-                parkTime = LocalDateTime.now(),
-                pickupTime = LocalDateTime.now().plusHours(6)
-            )
-        )
-    }
+fun HomeScreen(onNavigateToAddParking: () -> Unit, parkings: List<Parking>) {
 
     if(parkings.isEmpty()) {
         Column(
@@ -54,12 +42,7 @@ fun HomeScreen(onNavigateToAddParking: () -> Unit) {
 
             Spacer(modifier = Modifier.height(32.dp))
 
-            Button(
-                onClick = onNavigateToAddParking,
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Text(text = "Add Parking Spot")
-            }
+            AddParkingButton(onNavigateToAddParking)
         }
     } else {
         Column(
@@ -80,13 +63,46 @@ fun HomeScreen(onNavigateToAddParking: () -> Unit) {
             }
             Spacer(modifier = Modifier.height(8.dp))
 
-            Button(
-                onClick = onNavigateToAddParking,
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Text(text = "Add Parking Spot")
-            }
+            AddParkingButton(onNavigateToAddParking)
         }
     }
 
+}
+
+@Composable
+fun AddParkingButton(onNavigateToAddParking: () -> Unit) {
+    Button(
+        onClick = onNavigateToAddParking,
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        Text(text = "Add Parking Spot")
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun MitParkings() {
+    val parkings = remember {
+        mutableStateListOf(
+            Parking(
+                id = "3",
+                name = "Bahnhof Gummersbach",
+                latitude = 51.0260,
+                longitude = 7.5660,
+                parkTime = LocalDateTime.now(),
+                pickupTime = LocalDateTime.now().plusHours(6)
+            )
+        )
+    }
+    ParkQuickTheme {
+        HomeScreen(onNavigateToAddParking = {}, parkings)
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun OhneParkings() {
+    ParkQuickTheme {
+        HomeScreen(onNavigateToAddParking = {}, listOf())
+    }
 }
