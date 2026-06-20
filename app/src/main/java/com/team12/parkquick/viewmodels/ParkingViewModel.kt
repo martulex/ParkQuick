@@ -1,9 +1,9 @@
-package com.team12.parkquick.viemodels
+package com.team12.parkquick.viewmodels
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
-import com.team12.parkquick.data.Parking
+import com.team12.parkquick.models.Parking
 import java.time.LocalDateTime
 
 class ParkingViewModel : ViewModel() {

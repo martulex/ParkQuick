@@ -1,4 +1,4 @@
-package com.team12.parkquick.data
+package com.team12.parkquick.models
 
 import java.time.LocalDateTime
 

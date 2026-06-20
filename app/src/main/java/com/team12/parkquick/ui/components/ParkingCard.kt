@@ -21,7 +21,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.team12.parkquick.data.Parking
+import com.team12.parkquick.models.Parking
 import com.team12.parkquick.utilities.TimeFormatter
 import java.time.LocalDateTime
 

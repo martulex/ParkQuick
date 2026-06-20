@@ -17,9 +17,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.navigation.NavHostController
-import androidx.navigation.compose.rememberNavController
-import com.team12.parkquick.data.Parking
+import com.team12.parkquick.models.Parking
 import com.team12.parkquick.ui.components.ParkingCard
 import com.team12.parkquick.ui.theme.ParkQuickTheme
 import java.time.LocalDateTime

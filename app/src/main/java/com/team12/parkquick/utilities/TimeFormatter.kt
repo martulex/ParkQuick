@@ -1,6 +1,6 @@
 package com.team12.parkquick.utilities
 
-import com.team12.parkquick.data.Parking
+import com.team12.parkquick.models.Parking
 import java.time.LocalDateTime
 import java.time.Duration
 import java.time.format.DateTimeFormatter

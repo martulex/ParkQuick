@@ -43,7 +43,7 @@ import com.team12.parkquick.ui.screens.AddParkingScreen
 import com.team12.parkquick.ui.screens.ParkingHistoryScreen
 import com.team12.parkquick.ui.screens.SettingsScreen
 import com.team12.parkquick.ui.screens.HomeScreen
-import com.team12.parkquick.viemodels.ParkingViewModel
+import com.team12.parkquick.viewmodels.ParkingViewModel
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
