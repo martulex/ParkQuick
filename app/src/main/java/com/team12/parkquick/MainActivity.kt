@@ -31,10 +31,19 @@ import com.team12.parkquick.ui.theme.ParkQuickTheme
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.CenterAlignedTopAppBar
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.livedata.observeAsState
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.team12.parkquick.ui.navigation.AddParkingRoute
+import com.team12.parkquick.ui.navigation.BottomNavItem
+import com.team12.parkquick.ui.navigation.HistoryRoute
+import com.team12.parkquick.ui.navigation.HomeRoute
+import com.team12.parkquick.ui.navigation.SettingsRoute
 import com.team12.parkquick.ui.screens.AddParkingScreen
 import com.team12.parkquick.ui.screens.ParkingHistoryScreen
 import com.team12.parkquick.ui.screens.SettingsScreen
 import com.team12.parkquick.ui.screens.HomeScreen
+import com.team12.parkquick.viewmodels.ParkingViewModel
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -59,6 +68,8 @@ fun ParkQuickApp() {
     // zu wissen, wo man ist und wohin man gehen kann)
     val navController = rememberNavController()
 
+    val parkingViewModel: ParkingViewModel = viewModel()
+
     Scaffold(
         topBar = {
             ParkQuickTopBar(navController)
@@ -78,7 +89,9 @@ fun ParkQuickApp() {
         ) {
 
             composable<HomeRoute> {
-                HomeScreen(onNavigateToAddParking = {navController.navigate(AddParkingRoute)}, listOf())
+                val currentParkings by parkingViewModel.parkings.observeAsState(initial = emptyList())
+
+                HomeScreen(onNavigateToAddParking = {navController.navigate(AddParkingRoute)}, currentParkings)
             }
             composable<AddParkingRoute> {
                 AddParkingScreen(onNavigateBack = {navController.popBackStack()})

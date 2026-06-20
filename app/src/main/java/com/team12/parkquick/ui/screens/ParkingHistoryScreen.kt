@@ -24,7 +24,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.team12.parkquick.data.Parking
+import com.team12.parkquick.models.Parking
 import com.team12.parkquick.ui.theme.ParkQuickTheme
 import com.team12.parkquick.ui.components.ParkingCard
 import com.team12.parkquick.utilities.TimeFormatter
