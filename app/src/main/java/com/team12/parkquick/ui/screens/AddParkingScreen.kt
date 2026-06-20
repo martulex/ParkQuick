@@ -41,7 +41,7 @@ import androidx.navigation.NavHostController
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AddParkingScreen(navController: NavHostController) {
+fun AddParkingScreen(onNavigateBack : () -> Unit) {
     var notes by remember { mutableStateOf("") }
 
     Column(
@@ -118,10 +118,8 @@ fun AddParkingScreen(navController: NavHostController) {
 
         // Bestätigen
         Button(
-            onClick = {
+            onClick = onNavigateBack,
                 // TODO: Daten speichern
-                navController.popBackStack()
-            },
             modifier = Modifier.fillMaxWidth()
         ) {
             Text("Save Parking Spot")

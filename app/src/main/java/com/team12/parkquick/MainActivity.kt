@@ -26,6 +26,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.NavDestination.Companion.hasRoute
 import com.team12.parkquick.ui.theme.ParkQuickTheme
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.IconButton
@@ -72,21 +73,21 @@ fun ParkQuickApp() {
 
         NavHost(
             navController = navController,
-            startDestination = "home",
+            startDestination = HomeRoute,
             modifier = Modifier.padding(innerPadding) // Screen fängt unter der TopBar an und hört über der BottomBar auf
         ) {
 
-            composable("home") {
-                HomeScreen(navController)
+            composable<HomeRoute> {
+                HomeScreen(onNavigateToAddParking = {navController.navigate(AddParkingRoute)})
             }
-            composable("add_parking") {
-                AddParkingScreen(navController)
+            composable<AddParkingRoute> {
+                AddParkingScreen(onNavigateBack = {navController.popBackStack()})
             }
-            composable("history") {
+            composable<HistoryRoute> {
                 ParkingHistoryScreen()
             }
 
-            composable("settings") {
+            composable<SettingsRoute> {
                 SettingsScreen()
             }
         }
@@ -98,16 +99,16 @@ fun ParkQuickApp() {
 fun ParkQuickTopBar(navController: NavHostController) {
     // Aktuellen Stand der Navigation abrufen
     val navBackStackEntry = navController.currentBackStackEntryAsState().value // Der "live aktualisierte" Eintrag der aktuell ganz oben auf dem Backstack Stapel liegt
-    val currentRoute = navBackStackEntry?.destination?.route // Name der aktuellen Seite
-    val canNavigateBack = navController.previousBackStackEntry != null && currentRoute == "add_parking" // Bestimmt, ob man zurückgehen kann oder nicht (wichtig für den Pfeil)
+    val destination = navBackStackEntry?.destination
+    val canNavigateBack = navController.previousBackStackEntry != null && destination?.hasRoute<AddParkingRoute>() == true
 
     CenterAlignedTopAppBar(
         title = {
-            val title = when (currentRoute) {
-                "home" -> "Home"
-                "add_parking" -> "Add Parking Spot"
-                "history" -> "History"
-                "settings" -> "Settings"
+            val title = when {
+                destination?.hasRoute<HomeRoute>() == true -> "Home"
+                destination?.hasRoute<AddParkingRoute>() == true -> "Add Parking Spot"
+                destination?.hasRoute<HistoryRoute>() == true -> "History"
+                destination?.hasRoute<SettingsRoute>() == true -> "Settings"
                 else -> "ParkQuick"
             }
             Text(text = title)
@@ -129,23 +130,23 @@ fun ParkQuickTopBar(navController: NavHostController) {
 fun BottomNavigationBar(navController: NavHostController) {
 
     val items = listOf(
-        BottomNavItem("home", "Home", Icons.Default.Home),
-        BottomNavItem("history", "History", Icons.Default.History),
-        BottomNavItem("settings", "Settings", Icons.Default.Settings)
+        BottomNavItem(HomeRoute, "Home", Icons.Default.Home),
+        BottomNavItem(HistoryRoute, "History", Icons.Default.History),
+        BottomNavItem(SettingsRoute, "Settings", Icons.Default.Settings)
     )
 
     NavigationBar {
 
-        val currentRoute =
-            navController.currentBackStackEntryAsState().value?.destination?.route
+        val navBackStackEntry = navController.currentBackStackEntryAsState().value
+        val destination = navBackStackEntry?.destination
 
         items.forEach { item ->
 
             NavigationBarItem(
-                selected = currentRoute == item.route,
+                selected = destination?.hasRoute(item.route::class) ?: false,
                 onClick = {
 
-                    if(currentRoute != item.route) { // verhindert flackerndes nachladen wenn man schon auf dem screen ist
+                    if (destination?.hasRoute(item.route::class) == false) { // verhindert flackerndes nachladen wenn man schon auf dem screen ist
 
                     navController.navigate(item.route) {
 

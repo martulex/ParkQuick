@@ -23,7 +23,7 @@ import com.team12.parkquick.utilities.TimeFormatter
 import java.time.LocalDateTime
 
 @Composable
-fun HomeScreen(navController: NavHostController) {
+fun HomeScreen(onNavigateToAddParking: () -> Unit) {
 
     //Aktuellen Parkplätze Testdaten
     val parkings = remember {
@@ -55,9 +55,7 @@ fun HomeScreen(navController: NavHostController) {
             Spacer(modifier = Modifier.height(32.dp))
 
             Button(
-                onClick = {
-                    navController.navigate("add_parking")
-                },
+                onClick = onNavigateToAddParking,
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Text(text = "Add Parking Spot")
@@ -83,9 +81,7 @@ fun HomeScreen(navController: NavHostController) {
             Spacer(modifier = Modifier.height(8.dp))
 
             Button(
-                onClick = {
-                    navController.navigate("add_parking")
-                },
+                onClick = onNavigateToAddParking,
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Text(text = "Add Parking Spot")
