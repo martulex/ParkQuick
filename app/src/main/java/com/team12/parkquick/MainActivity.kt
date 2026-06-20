@@ -78,7 +78,7 @@ fun ParkQuickApp() {
         ) {
 
             composable<HomeRoute> {
-                HomeScreen(onNavigateToAddParking = {navController.navigate(AddParkingRoute)})
+                HomeScreen(onNavigateToAddParking = {navController.navigate(AddParkingRoute)}, listOf())
             }
             composable<AddParkingRoute> {
                 AddParkingScreen(onNavigateBack = {navController.popBackStack()})

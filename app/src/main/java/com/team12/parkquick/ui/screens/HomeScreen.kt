@@ -95,7 +95,7 @@ fun MitParkings() {
         )
     }
     ParkQuickTheme {
-        HomeScreen(rememberNavController(), parkings)
+        HomeScreen(onNavigateToAddParking = {}, parkings)
     }
 }
 
@@ -103,6 +103,6 @@ fun MitParkings() {
 @Composable
 fun OhneParkings() {
     ParkQuickTheme {
-        HomeScreen(rememberNavController(), listOf())
+        HomeScreen(onNavigateToAddParking = {}, listOf())
     }
 }
