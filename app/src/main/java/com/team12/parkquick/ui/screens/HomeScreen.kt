@@ -53,7 +53,6 @@ fun HomeScreen(onNavigateToAddParking: () -> Unit, parkings: List<Parking>) {
 
                 ParkingCard(
                     parking = parking,
-                    isActive = true,
                     onRouteClick = {
                         // später Navigation / Maps
                     }
@@ -88,7 +87,8 @@ fun MitParkings() {
                 latitude = 51.0260,
                 longitude = 7.5660,
                 parkTime = LocalDateTime.now(),
-                pickupTime = LocalDateTime.now().plusHours(6)
+                pickupTime = LocalDateTime.now().plusHours(6),
+                isInParking = true
             )
         )
     }

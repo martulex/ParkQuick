@@ -31,49 +31,19 @@ import com.team12.parkquick.utilities.TimeFormatter
 import java.time.LocalDateTime
 
 @Composable
-fun ParkingHistoryScreen() {
-
-    val historyList = listOf(
-        Parking(
-            id = "1",
-            name = "Flughafen Köln",
-            latitude = 50.8659,
-            longitude = 7.1427,
-            parkTime = LocalDateTime.now(),
-            pickupTime = LocalDateTime.now().plusDays(2)
-        ),
-
-        Parking(
-            id = "2",
-            name = "Zuhause Parkplatz",
-            latitude = 51.0276,
-            longitude = 7.5654,
-            parkTime = LocalDateTime.now().minusHours(5),
-            pickupTime = LocalDateTime.now().plusHours(10)
-        ),
-
-        Parking(
-            id = "3",
-            name = "Bahnhof Gummersbach",
-            latitude = 51.0260,
-            longitude = 7.5660,
-            parkTime = LocalDateTime.now(),
-            pickupTime = LocalDateTime.now().plusHours(6)
-        )
-    )
+fun ParkingHistoryScreen(historyList: List<Parking>) {
 
     LazyColumn(
         modifier = Modifier
             .fillMaxSize()
             .padding(horizontal = 16.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp),
-        contentPadding = PaddingValues(16.dp) // // Abstand, damit die erste Karte im Ruhezustand nicht direkt an der Top Bar klebt
+        contentPadding = PaddingValues(top = 16.dp) // // Abstand, damit die erste Karte im Ruhezustand nicht direkt an der Top Bar klebt
     ) {
 
         items(historyList) { item ->
             ParkingCard(
-                parking = item,
-                isActive = false
+                parking = item
             )
         }
     }
@@ -131,6 +101,37 @@ fun ParkingHistoryCard(item: Parking) {
 @Composable
 fun ParkingHistoryPreview() {
     ParkQuickTheme {
-        ParkingHistoryScreen()
+        ParkingHistoryScreen(
+            listOf(
+                Parking(
+                    id = "1",
+                    name = "Flughafen Köln",
+                    latitude = 50.8659,
+                    longitude = 7.1427,
+                    parkTime = LocalDateTime.now(),
+                    pickupTime = LocalDateTime.now().plusDays(2),
+                    isInParking = false
+                ),
+                Parking(
+                    id = "2",
+                    name = "Somewhere",
+                    latitude = 50.8659,
+                    longitude = 7.1427,
+                    parkTime = LocalDateTime.now(),
+                    pickupTime = LocalDateTime.now().plusDays(2),
+                    isInParking = false
+                ),
+                Parking(
+                    id = "3",
+                    name = "Campus Parking",
+                    latitude = 50.8659,
+                    longitude = 7.1427,
+                    parkTime = LocalDateTime.now(),
+                    pickupTime = LocalDateTime.now().plusDays(2),
+                    isInParking = false
+                )
+
+            )
+        )
     }
 }
