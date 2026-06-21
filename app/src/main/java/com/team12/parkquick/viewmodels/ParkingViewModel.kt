@@ -90,4 +90,10 @@ class ParkingViewModel : ViewModel() {
         addParking(newParking)
 
     }
+
+    fun getParkingByID(id : String) : Parking? {
+
+        return _parkings.value?.find { it.id == id }
+
+    }
 }

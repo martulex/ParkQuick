@@ -39,4 +39,8 @@ object TimeFormatter {
             "$start – $end"
         }
     }
+
+    fun formatTimeOnly(dateTime: LocalDateTime): String {
+        return dateTime.format(formatter)
+    }
 }
