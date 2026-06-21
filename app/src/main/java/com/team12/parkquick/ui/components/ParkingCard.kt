@@ -28,7 +28,6 @@ import java.time.LocalDateTime
 @Composable
 fun ParkingCard(
     parking: Parking,
-    isActive: Boolean,
     onRouteClick: (() -> Unit)? = null
 ) {
     Card(
@@ -71,12 +70,12 @@ fun ParkingCard(
             ) {
 
                 Text(
-                    text = TimeFormatter.formatParkingInfo(parking, isActive),
+                    text = TimeFormatter.formatParkingInfo(parking, parking.isInParking),
                     style = MaterialTheme.typography.bodyLarge,
                     color = MaterialTheme.colorScheme.primary
                 )
 
-                if (isActive) {
+                if (parking.isInParking) {
                     Button(onClick = onRouteClick ?: {}) {
                         Text("Route to my car")
                     }
@@ -86,24 +85,22 @@ fun ParkingCard(
     }
 }
 
-val sampleParking = Parking(
-    id = "1",
-    name = "TH Köln Parkplatz",
-    notes = null,
-    latitude = 50.0,
-    longitude = 7.0,
-    imageUrls = emptyList(),
-    parkTime = LocalDateTime.now().minusMinutes(25),
-    pickupTime = LocalDateTime.now().plusHours(2)
-)
-
 @Preview(showBackground = true)
 @Composable
 fun ParkingCardPreviewActive() {
-
+    val sampleParking = Parking(
+        id = "1",
+        name = "TH Köln Parkplatz",
+        notes = null,
+        latitude = 50.0,
+        longitude = 7.0,
+        imageUrls = emptyList(),
+        parkTime = LocalDateTime.now().minusMinutes(25),
+        pickupTime = LocalDateTime.now().plusHours(2),
+        isInParking = true
+    )
     ParkingCard(
         parking = sampleParking,
-        isActive = true,
         onRouteClick = {}
     )
 }
@@ -111,10 +108,19 @@ fun ParkingCardPreviewActive() {
 @Preview(showBackground = true)
 @Composable
 fun ParkingCardPreviewHistory() {
-
+    val sampleParking = Parking(
+        id = "1",
+        name = "TH Köln Parkplatz",
+        notes = null,
+        latitude = 50.0,
+        longitude = 7.0,
+        imageUrls = emptyList(),
+        parkTime = LocalDateTime.now().minusMinutes(25),
+        pickupTime = LocalDateTime.now().plusHours(2),
+        isInParking = false
+    )
     ParkingCard(
         parking = sampleParking,
-        isActive = false,
         onRouteClick = {}
     )
 }

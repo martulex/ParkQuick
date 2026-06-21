@@ -17,5 +17,7 @@ data class Parking(
 
     // Parkzeitraum
     val parkTime: LocalDateTime,
-    val pickupTime: LocalDateTime
+    val pickupTime: LocalDateTime,
+
+    val isInParking: Boolean
 )

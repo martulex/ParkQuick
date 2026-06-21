@@ -69,7 +69,8 @@ fun ParkQuickApp() {
     val navController = rememberNavController()
 
     val parkingViewModel: ParkingViewModel = viewModel()
-
+    val activeParkings by parkingViewModel.activeParkings.observeAsState(initial = emptyList())
+    val historyParkings by parkingViewModel.historyParkings.observeAsState(initial = emptyList())
     Scaffold(
         topBar = {
             ParkQuickTopBar(navController)
@@ -89,15 +90,13 @@ fun ParkQuickApp() {
         ) {
 
             composable<HomeRoute> {
-                val currentParkings by parkingViewModel.parkings.observeAsState(initial = emptyList())
-
-                HomeScreen(onNavigateToAddParking = {navController.navigate(AddParkingRoute)}, currentParkings)
+                HomeScreen(onNavigateToAddParking = {navController.navigate(AddParkingRoute)}, activeParkings)
             }
             composable<AddParkingRoute> {
                 AddParkingScreen(onNavigateBack = {navController.popBackStack()})
             }
             composable<HistoryRoute> {
-                ParkingHistoryScreen()
+                ParkingHistoryScreen(historyParkings)
             }
 
             composable<SettingsRoute> {
