@@ -27,10 +27,10 @@ import java.time.LocalDateTime
 
 @Composable
 fun ParkingCard(
-    parking: Parking,
+    parking: Parking, onCardClick : () -> Unit,
     onRouteClick: (() -> Unit)? = null
 ) {
-    Card(
+    Card(onClick = onCardClick,
         modifier = Modifier
             .fillMaxWidth()
             .padding(8.dp),
@@ -101,6 +101,7 @@ fun ParkingCardPreviewActive() {
     )
     ParkingCard(
         parking = sampleParking,
+        onCardClick = {},
         onRouteClick = {}
     )
 }
@@ -121,6 +122,7 @@ fun ParkingCardPreviewHistory() {
     )
     ParkingCard(
         parking = sampleParking,
+        onCardClick = {},
         onRouteClick = {}
     )
 }

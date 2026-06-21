@@ -6,6 +6,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.map
 import com.team12.parkquick.models.Parking
 import java.time.LocalDateTime
+import java.util.UUID
 
 class ParkingViewModel : ViewModel() {
     private val _parkings = MutableLiveData<List<Parking>>(
@@ -71,5 +72,28 @@ class ParkingViewModel : ViewModel() {
     fun addParking(parking: Parking) {
         val currentList = _parkings.value ?: emptyList()
         _parkings.value = currentList + parking
+    }
+
+    fun addNewParking(durationMinutes : Long, name : String, notes : String) {
+
+        val newParking = Parking(
+            id = UUID.randomUUID().toString(),
+            name = name,
+            notes = notes,
+            latitude = 51.0276,
+            longitude = 7.5654,
+            parkTime = LocalDateTime.now(),
+            pickupTime = LocalDateTime.now().plusMinutes(durationMinutes),
+            isInParking = true
+        )
+
+        addParking(newParking)
+
+    }
+
+    fun getParkingByID(id : String) : Parking? {
+
+        return _parkings.value?.find { it.id == id }
+
     }
 }

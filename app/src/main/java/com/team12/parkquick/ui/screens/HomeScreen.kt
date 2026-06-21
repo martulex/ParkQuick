@@ -23,7 +23,7 @@ import com.team12.parkquick.ui.theme.ParkQuickTheme
 import java.time.LocalDateTime
 
 @Composable
-fun HomeScreen(onNavigateToAddParking: () -> Unit, parkings: List<Parking>) {
+fun HomeScreen(onNavigateToAddParking: () -> Unit, parkings: List<Parking>, onCardClick : (String) -> Unit) {
 
     if(parkings.isEmpty()) {
         Column(
@@ -55,7 +55,8 @@ fun HomeScreen(onNavigateToAddParking: () -> Unit, parkings: List<Parking>) {
                     parking = parking,
                     onRouteClick = {
                         // später Navigation / Maps
-                    }
+                    },
+                    onCardClick = {onCardClick(parking.id)},
                 )
             }
             Spacer(modifier = Modifier.height(8.dp))
@@ -93,7 +94,7 @@ fun MitParkings() {
         )
     }
     ParkQuickTheme {
-        HomeScreen(onNavigateToAddParking = {}, parkings)
+        HomeScreen(onNavigateToAddParking = {}, parkings, onCardClick = {})
     }
 }
 
@@ -101,6 +102,6 @@ fun MitParkings() {
 @Composable
 fun OhneParkings() {
     ParkQuickTheme {
-        HomeScreen(onNavigateToAddParking = {}, listOf())
+        HomeScreen(onNavigateToAddParking = {}, listOf(), onCardClick = {})
     }
 }

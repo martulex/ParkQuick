@@ -21,6 +21,7 @@ import androidx.compose.material.icons.filled.PhotoCamera
 import androidx.compose.material3.AssistChip
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
@@ -37,12 +38,16 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
+import com.team12.parkquick.viewmodels.ParkingViewModel
 
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AddParkingScreen(onNavigateBack : () -> Unit) {
+fun AddParkingScreen(onNavigateBack : () -> Unit, viewModel: ParkingViewModel) {
+
     var notes by remember { mutableStateOf("") }
+    var selectedMinutes by remember { mutableStateOf(60L) }
+    var name by remember { mutableStateOf("") }
 
     Column(
         modifier = Modifier
@@ -78,15 +83,15 @@ fun AddParkingScreen(onNavigateBack : () -> Unit) {
         // Timer: Schnellauswahl für Zeiten
         Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
 
-            Text(text = "Set Timer", style = MaterialTheme.typography.titleMedium)
+            Text(text = "Set Timer: ${selectedMinutes} min", style = MaterialTheme.typography.titleMedium)
 
             Row(
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                AssistChip(onClick = { /* Set 30 min */ }, label = { Text("30m") })
-                AssistChip(onClick = { /* Set 1h */ }, label = { Text("1h") })
-                AssistChip(onClick = { /* Set 2h */ }, label = { Text("2h") })
-                AssistChip(onClick = { /* Set Custom Timer */ }, label = { Text("Custom")})
+                FilterChip(selected = selectedMinutes == 30L,{ selectedMinutes = 30 }, label = { Text("30m") })
+                FilterChip(selected = selectedMinutes == 60L, { selectedMinutes = 60 }, label = { Text("1h") })
+                FilterChip(selected = selectedMinutes == 120L, { selectedMinutes = 120 }, label = { Text("2h") })
+                FilterChip(selected = false, { /* TODO: Show TimePickerDialog */ }, label = { Text("Custom")})
             }
         }
 
@@ -105,7 +110,15 @@ fun AddParkingScreen(onNavigateBack : () -> Unit) {
 
         }
 
-        // 4. NOTES
+        OutlinedTextField(
+            value = name,
+            onValueChange = {name = it},
+            label = {Text("Name (e.g. Cinema, Work)")},
+            modifier = Modifier.fillMaxWidth(),
+            singleLine = true
+        )
+
+        // Notes
         OutlinedTextField(
             value = notes, // Das Textfeld schaut in die Merkzelle notes und zeigt dem Nutzer immer genau den Text an, der dort gerade abgespeichert ist.
             onValueChange = { notes = it }, // Jedes Mal, wenn der Nutzer eine Taste drückt, fängt Android den neuen Text ab (it) und speichert ihn sofort in notes ab, damit der Bildschirm sich mit dem neuen Buchstaben aktualisieren kann.
@@ -114,12 +127,12 @@ fun AddParkingScreen(onNavigateBack : () -> Unit) {
             minLines = 3
         )
 
-        Spacer(modifier = Modifier.height(24.dp))
+        //Spacer(modifier = Modifier.height(24.dp))
 
         // Bestätigen
         Button(
-            onClick = onNavigateBack,
-                // TODO: Daten speichern
+            onClick = { viewModel.addNewParking(selectedMinutes, name, notes)
+                onNavigateBack() },
             modifier = Modifier.fillMaxWidth()
         ) {
             Text("Save Parking Spot")

@@ -43,7 +43,9 @@ fun ParkingHistoryScreen(historyList: List<Parking>) {
 
         items(historyList) { item ->
             ParkingCard(
-                parking = item
+                parking = item,
+                onCardClick = {},
+                onRouteClick = {}
             )
         }
     }
