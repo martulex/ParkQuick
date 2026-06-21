@@ -31,20 +31,20 @@ import com.team12.parkquick.utilities.TimeFormatter
 import java.time.LocalDateTime
 
 @Composable
-fun ParkingHistoryScreen(historyList: List<Parking>) {
+fun ParkingHistoryScreen(historyList: List<Parking>, onCardClick : (String) -> Unit) {
 
     LazyColumn(
         modifier = Modifier
             .fillMaxSize()
             .padding(horizontal = 16.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp),
-        contentPadding = PaddingValues(top = 16.dp) // // Abstand, damit die erste Karte im Ruhezustand nicht direkt an der Top Bar klebt
+        contentPadding = PaddingValues(top = 16.dp) // // Abstand, damit die erste Karte nicht direkt an der Top Bar klebt
     ) {
 
         items(historyList) { item ->
             ParkingCard(
                 parking = item,
-                onCardClick = {},
+                onCardClick = {onCardClick(item.id)},
                 onRouteClick = {}
             )
         }
@@ -133,7 +133,8 @@ fun ParkingHistoryPreview() {
                     isInParking = false
                 )
 
-            )
+            ),
+            onCardClick = {}
         )
     }
 }
