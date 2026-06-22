@@ -7,7 +7,9 @@ import java.time.format.DateTimeFormatter
 import java.util.Locale
 
 object TimeFormatter {
-
+    private val dateFormatter = DateTimeFormatter.ofPattern("dd.MM.")
+    private val timeFormatter = DateTimeFormatter.ofPattern("HH:mm")
+    private val hourOnlyFormatter = DateTimeFormatter.ofPattern("HH")
 
     private val formatter = DateTimeFormatter.ofPattern(
         "dd.MM. HH:mm",
@@ -42,5 +44,18 @@ object TimeFormatter {
 
     fun formatTimeOnly(dateTime: LocalDateTime): String {
         return dateTime.format(formatter)
+    }
+
+    fun formatHistoryInfo(parking: Parking): String {
+        val start = parking.parkTime
+        val end = parking.pickupTime
+
+        return if (start.toLocalDate() == end.toLocalDate()) {
+            // Gleicher Tag: "Parked on 21.05. from 11:00 till 12:00"
+            "Parked on ${start.format(dateFormatter)} from ${start.format(timeFormatter)} till ${end.format(timeFormatter)}"
+        } else {
+            // Verschiedene Tage: "Parked from 21.06. 17:12 until 22.06. 10:00"
+            "Parked from ${start.format(dateFormatter)} ${start.format(timeFormatter)} until ${end.format(dateFormatter)} ${end.format(timeFormatter)}"
+        }
     }
 }

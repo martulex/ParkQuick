@@ -1,5 +1,7 @@
 package com.team12.parkquick.ui.screens
 
+import android.app.DatePickerDialog
+import android.app.TimePickerDialog
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -18,7 +20,6 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Map
 import androidx.compose.material.icons.filled.PhotoCamera
-import androidx.compose.material3.AssistChip
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
@@ -36,18 +37,55 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
-import androidx.navigation.NavHostController
 import com.team12.parkquick.viewmodels.ParkingViewModel
+import java.time.Duration
+import java.time.LocalDate
+import java.time.LocalDateTime
+import java.time.LocalTime
+import java.util.Calendar
 
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AddParkingScreen(onNavigateBack : () -> Unit, viewModel: ParkingViewModel) {
-
+    val context = LocalContext.current
     var notes by remember { mutableStateOf("") }
     var selectedMinutes by remember { mutableStateOf(60L) }
     var name by remember { mutableStateOf("") }
+    var isCustomSelected by remember { mutableStateOf(false) }
+
+    fun showDateTimePicker() {
+        val currentCalendar = Calendar.getInstance()
+
+        DatePickerDialog(
+            context,
+            { _, year, month, dayOfMonth ->
+                TimePickerDialog(
+                    context,
+                    { _, hourOfDay, minute ->
+                        val targetDateTime = LocalDateTime.of(
+                            LocalDate.of(year, month + 1, dayOfMonth),
+                            LocalTime.of(hourOfDay, minute)
+                        )
+                        val diffInMinutes = Duration.between(LocalDateTime.now(), targetDateTime).toMinutes()
+
+                        if (diffInMinutes > 0) {
+                            selectedMinutes = diffInMinutes
+                            isCustomSelected = true
+                        }
+                    },
+                    currentCalendar.get(Calendar.HOUR_OF_DAY),
+                    currentCalendar.get(Calendar.MINUTE),
+                    true
+                ).show()
+            },
+            currentCalendar.get(Calendar.YEAR),
+            currentCalendar.get(Calendar.MONTH),
+            currentCalendar.get(Calendar.DAY_OF_MONTH)
+        ).show()
+    }
 
     Column(
         modifier = Modifier
@@ -82,16 +120,34 @@ fun AddParkingScreen(onNavigateBack : () -> Unit, viewModel: ParkingViewModel) {
 
         // Timer: Schnellauswahl für Zeiten
         Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-
-            Text(text = "Set Timer: ${selectedMinutes} min", style = MaterialTheme.typography.titleMedium)
+            // Text-Anzeige formatiert große Minutenzahlen lesbar in Stunden um, falls über Custom gewählt
+            val displayText = if (selectedMinutes >= 60) "${selectedMinutes / 60}h ${selectedMinutes % 60}m" else "${selectedMinutes} min"
+            Text(text = "Set Timer: $displayText", style = MaterialTheme.typography.titleMedium)
 
             Row(
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                FilterChip(selected = selectedMinutes == 30L,{ selectedMinutes = 30 }, label = { Text("30m") })
-                FilterChip(selected = selectedMinutes == 60L, { selectedMinutes = 60 }, label = { Text("1h") })
-                FilterChip(selected = selectedMinutes == 120L, { selectedMinutes = 120 }, label = { Text("2h") })
-                FilterChip(selected = false, { /* TODO: Show TimePickerDialog */ }, label = { Text("Custom")})
+                FilterChip(
+                    selected = selectedMinutes == 30L && !isCustomSelected,
+                    onClick = { selectedMinutes = 30L; isCustomSelected = false },
+                    label = { Text("30m") }
+                )
+                FilterChip(
+                    selected = selectedMinutes == 60L && !isCustomSelected,
+                    onClick = { selectedMinutes = 60L; isCustomSelected = false },
+                    label = { Text("1h") }
+                )
+                FilterChip(
+                    selected = selectedMinutes == 120L && !isCustomSelected,
+                    onClick = { selectedMinutes = 120L; isCustomSelected = false },
+                    label = { Text("2h") }
+                )
+                // Der Custom-Button öffnet jetzt die nativen Picker-Dialoge
+                FilterChip(
+                    selected = isCustomSelected,
+                    onClick = { showDateTimePicker() },
+                    label = { Text("Custom") }
+                )
             }
         }
 
