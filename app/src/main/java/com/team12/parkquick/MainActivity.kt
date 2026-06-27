@@ -33,8 +33,10 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.toRoute
+import com.team12.parkquick.settings.UserSettingsViewModel
 import com.team12.parkquick.ui.navigation.AddParkingRoute
 import com.team12.parkquick.ui.navigation.BottomNavItem
 import com.team12.parkquick.ui.navigation.HistoryRoute
@@ -53,7 +55,9 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
-            ParkQuickTheme {
+            val settingsViewModel: UserSettingsViewModel = viewModel()
+            val settings by settingsViewModel.settingsState.collectAsStateWithLifecycle()
+            ParkQuickTheme(darkTheme = settings.isDarkModeEnabled) {
                 Surface(
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
@@ -72,6 +76,7 @@ fun ParkQuickApp() {
     val navController = rememberNavController()
 
     val parkingViewModel: ParkingViewModel = viewModel()
+    val usersettingsViewModel : UserSettingsViewModel = viewModel()
     val activeParkings by parkingViewModel.activeParkings.observeAsState(initial = emptyList())
     val historyParkings by parkingViewModel.historyParkings.observeAsState(initial = emptyList())
     Scaffold(
@@ -114,7 +119,7 @@ fun ParkQuickApp() {
             }
 
             composable<SettingsRoute> {
-                SettingsScreen()
+                SettingsScreen(usersettingsViewModel)
             }
         }
     }
