@@ -55,6 +55,8 @@ dependencies {
     implementation(libs.androidx.datastore.core)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.navigation.compose)
+    implementation(libs.androidx.room3.common.jvm)
+    implementation(libs.androidx.room3.runtime)
     implementation(libs.kotlinx.serialization.json)
     implementation(libs.androidx.lifecycle.viewmodel.compose)
     implementation(libs.androidx.work.runtime.ktx)

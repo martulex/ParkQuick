@@ -30,7 +30,6 @@ import com.team12.parkquick.models.Parking
 import com.team12.parkquick.utilities.TimeFormatter
 import java.time.Duration
 import java.time.LocalDateTime
-import kotlin.time.Duration.Companion.seconds
 
 @Composable
 fun ParkingCard(

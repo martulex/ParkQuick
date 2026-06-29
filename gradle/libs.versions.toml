@@ -16,6 +16,8 @@ runtimeLivedata = "1.11.3"
 workRuntimeKtx = "2.9.0"
 datastoreCore = "1.2.1"
 datastoreCoreJvm = "1.2.1"
+room3CommonJvm = "3.0.0-rc01"
+room3Runtime = "3.0.0-rc01"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -41,6 +43,8 @@ kotlinx-serialization-json = { group = "org.jetbrains.kotlinx", name = "kotlinx-
 androidx-compose-runtime-livedata = { group = "androidx.compose.runtime", name = "runtime-livedata", version.ref = "runtimeLivedata" }
 androidx-datastore-core = { group = "androidx.datastore", name = "datastore-core", version.ref = "datastoreCore" }
 androidx-datastore-core-jvm = { group = "androidx.datastore", name = "datastore-core-jvm", version.ref = "datastoreCoreJvm" }
+androidx-room3-common-jvm = { group = "androidx.room3", name = "room3-common-jvm", version.ref = "room3CommonJvm" }
+androidx-room3-runtime = { group = "androidx.room3", name = "room3-runtime", version.ref = "room3Runtime" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

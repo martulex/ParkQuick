@@ -10,6 +10,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.team12.parkquick.settings.UserSettingsViewModel
+import com.team12.parkquick.ui.theme.ParkQuickTheme
 
 // (wird vom NavHost aufgerufen, kommuniziert mit viewModel)
 @Composable
@@ -69,7 +70,7 @@ fun SettingsScreenContent(
 @Preview(showBackground = true, name = "Settings - Light Mode")
 @Composable
 fun SettingsScreenPreviewLight() {
-    MaterialTheme {
+    ParkQuickTheme {
         SettingsScreenContent(
             isDarkModeActive = false,
             onToggleDarkMode = {}
@@ -80,7 +81,7 @@ fun SettingsScreenPreviewLight() {
 @Preview(showBackground = true, name = "Settings - Dark Mode")
 @Composable
 fun SettingsScreenPreviewDark() {
-    MaterialTheme {
+    ParkQuickTheme {
         SettingsScreenContent(
             isDarkModeActive = true,
             onToggleDarkMode = {}
