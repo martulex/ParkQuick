@@ -50,6 +50,7 @@ import java.util.Calendar
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AddParkingScreen(onNavigateBack : () -> Unit, viewModel: ParkingViewModel) {
+
     val context = LocalContext.current
     var notes by remember { mutableStateOf("") }
     var selectedMinutes by remember { mutableStateOf(60L) }
