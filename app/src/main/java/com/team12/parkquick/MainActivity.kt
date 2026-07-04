@@ -10,7 +10,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -39,17 +38,17 @@ import androidx.navigation.toRoute
 import com.team12.parkquick.settings.UserSettingsViewModel
 import com.team12.parkquick.ui.navigation.AddParkingRoute
 import com.team12.parkquick.ui.navigation.BottomNavItem
-import com.team12.parkquick.ui.navigation.DiscoverRoute
 import com.team12.parkquick.ui.navigation.HistoryRoute
 import com.team12.parkquick.ui.navigation.HomeRoute
 import com.team12.parkquick.ui.navigation.ParkingDetailRoute
 import com.team12.parkquick.ui.navigation.SettingsRoute
-import com.team12.parkquick.ui.screens.AddParkingScreen
+import com.team12.parkquick.ui.screens.AddParkingContent
+import com.team12.parkquick.ui.screens.ParkingDetailContent
 import com.team12.parkquick.ui.screens.ParkingHistoryScreen
-import com.team12.parkquick.ui.screens.SettingsScreen
+import com.team12.parkquick.ui.screens.SettingsScreenContent
 import com.team12.parkquick.ui.screens.HomeScreen
-import com.team12.parkquick.ui.screens.ParkingDetailScreen
 import com.team12.parkquick.viewmodels.ParkingViewModel
+import com.team12.parkquick.database.ParkingCard
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -71,15 +70,40 @@ class MainActivity : ComponentActivity() {
 }
 
 @Composable
-fun ParkQuickApp() {
-    // navController für die Navigation im System (remember um auch bei Änderungen (z.B. drehen des Bildschirms, "neu zeichnen" des Canvas
-    // zu wissen, wo man ist und wohin man gehen kann)
+fun ParkQuickApp(
+    parkingViewModel: ParkingViewModel = viewModel(),
+    usersettingsViewModel : UserSettingsViewModel = viewModel()
+) {
     val navController = rememberNavController()
 
-    val parkingViewModel: ParkingViewModel = viewModel()
-    val usersettingsViewModel : UserSettingsViewModel = viewModel()
     val activeParkings by parkingViewModel.activeParkings.collectAsStateWithLifecycle(emptyList())
     val historyParkings by parkingViewModel.historyParkings.collectAsStateWithLifecycle(emptyList())
+    val settings by usersettingsViewModel.settingsState.collectAsStateWithLifecycle()
+
+    ParkQuickAppContent(
+        navController = navController,
+        activeParkings = activeParkings,
+        historyParkings = historyParkings,
+        onGetParkingById = { id -> 
+            // In-memory lookup from the current state
+            activeParkings.find { it.id == id } ?: historyParkings.find { it.id == id }
+        },
+        onSaveParking = { minutes, name, notes -> parkingViewModel.addNewParking(minutes, name, notes) },
+        isDarkModeEnabled = settings.isDarkModeEnabled,
+        onToggleDarkMode = { usersettingsViewModel.toggleDarkMode() }
+    )
+}
+
+@Composable
+fun ParkQuickAppContent(
+    navController: NavHostController,
+    activeParkings: List<ParkingCard>,
+    historyParkings: List<ParkingCard>,
+    onGetParkingById: (String) -> ParkingCard?,
+    onSaveParking: (Long, String, String?) -> Unit,
+    isDarkModeEnabled: Boolean,
+    onToggleDarkMode: () -> Unit
+) {
     Scaffold(
         topBar = {
             ParkQuickTopBar(navController)
@@ -87,41 +111,44 @@ fun ParkQuickApp() {
         bottomBar = {
             BottomNavigationBar(navController)
         }
-    ) { innerPadding -> // Lokale Variable die automatisch das padding der Scaffold Elemente enthält (Kotlin Regeln)
-        // und dann der nächsten Zeile weitergegeben werden kann.
-
-        // Über den NavHost wird immer der Bildschirm eingeblendet, den der navController auswählt.
-
+    ) { innerPadding ->
         NavHost(
             navController = navController,
             startDestination = HomeRoute,
-            modifier = Modifier.padding(innerPadding) // Screen fängt unter der TopBar an und hört über der BottomBar auf
+            modifier = Modifier.padding(innerPadding)
         ) {
-
             composable<HomeRoute> {
-                HomeScreen(onNavigateToAddParking = {navController.navigate(AddParkingRoute)}, activeParkings, onCardClick = {navController.navigate(
-                    ParkingDetailRoute(parkingId = it))})
-            }
-            composable<ParkingDetailRoute>{ backStackEntry ->
-                val route : ParkingDetailRoute = backStackEntry.toRoute()
-
-                ParkingDetailScreen(
-                    parkingId = route.parkingId,
-                    viewModel = parkingViewModel,
-                    onNavigateBack = { navController.popBackStack() }
+                HomeScreen(
+                    onNavigateToAddParking = { navController.navigate(AddParkingRoute) },
+                    parkings = activeParkings,
+                    onCardClick = { navController.navigate(ParkingDetailRoute(parkingId = it)) }
                 )
-
+            }
+            composable<ParkingDetailRoute> { backStackEntry ->
+                val route: ParkingDetailRoute = backStackEntry.toRoute()
+                val parkingObj = onGetParkingById(route.parkingId)
+                ParkingDetailContent(parkingObj)
             }
             composable<AddParkingRoute> {
-                AddParkingScreen(onNavigateBack = {navController.popBackStack()}, parkingViewModel)
+                AddParkingContent(
+                    onNavigateBack = { navController.popBackStack() },
+                    onSaveParking = { minutes, name, notes ->
+                        onSaveParking(minutes, name, notes)
+                        navController.popBackStack()
+                    }
+                )
             }
             composable<HistoryRoute> {
-                ParkingHistoryScreen(historyParkings, onCardClick = {navController.navigate(
-                    ParkingDetailRoute(parkingId = it))})
+                ParkingHistoryScreen(
+                    historyList = historyParkings,
+                    onCardClick = { navController.navigate(ParkingDetailRoute(parkingId = it)) }
+                )
             }
-
             composable<SettingsRoute> {
-                SettingsScreen(usersettingsViewModel)
+                SettingsScreenContent(
+                    isDarkModeActive = isDarkModeEnabled,
+                    onToggleDarkMode = onToggleDarkMode
+                )
             }
         }
     }
@@ -130,10 +157,10 @@ fun ParkQuickApp() {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ParkQuickTopBar(navController: NavHostController) {
-    // Aktuellen Stand der Navigation abrufen
-    val navBackStackEntry = navController.currentBackStackEntryAsState().value // Der "live aktualisierte" Eintrag der aktuell ganz oben auf dem Backstack Stapel liegt
+    val navBackStackEntry = navController.currentBackStackEntryAsState().value
     val destination = navBackStackEntry?.destination
-    val canNavigateBack = navController.previousBackStackEntry != null && (destination?.hasRoute<AddParkingRoute>() == true || destination?.hasRoute<ParkingDetailRoute>() == true)
+    val canNavigateBack = navController.previousBackStackEntry != null && 
+        (destination?.hasRoute<AddParkingRoute>() == true || destination?.hasRoute<ParkingDetailRoute>() == true)
 
     CenterAlignedTopAppBar(
         title = {
@@ -152,7 +179,7 @@ fun ParkQuickTopBar(navController: NavHostController) {
                 IconButton(onClick = { navController.navigateUp() }) {
                     Icon(
                         imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                        contentDescription = "Back" // Accessibility
+                        contentDescription = "Back"
                     )
                 }
             }
@@ -162,7 +189,6 @@ fun ParkQuickTopBar(navController: NavHostController) {
 
 @Composable
 fun BottomNavigationBar(navController: NavHostController) {
-
     val items = listOf(
         BottomNavItem(HomeRoute, "Home", Icons.Default.Home),
         BottomNavItem(HistoryRoute, "History", Icons.Default.History),
@@ -170,30 +196,23 @@ fun BottomNavigationBar(navController: NavHostController) {
     )
 
     NavigationBar {
-
         val navBackStackEntry = navController.currentBackStackEntryAsState().value
         val destination = navBackStackEntry?.destination
 
         items.forEach { item ->
-
             NavigationBarItem(
                 selected = destination?.hasRoute(item.route::class) ?: false,
                 onClick = {
-
-                    if (destination?.hasRoute(item.route::class) == false) { // verhindert flackerndes nachladen wenn man schon auf dem screen ist
-
-                    navController.navigate(item.route) {
-
-                        popUpTo(navController.graph.startDestinationId) {
-                            saveState = true
-                        } /* // Räumt den Stack bis zum Homescreen auf, damit sich der Speicher nicht füllt.
-                                Alles zwischen dem Homescreen und dem neuen Ziel wird vom Stack gelöscht.
-                        mit saveState wird der Zustand des screens gespeichert (z.B. Scrollposition)*/
-
-                        launchSingleTop = true // verhindert, dass das gleiche Ziel mehrfach oben auf dem Stack landet
-                        restoreState = true // screen wird wieder so aufgerufen wie man ihn verlassen hat (scrollposition etc.)
+                    if (destination?.hasRoute(item.route::class) == false) {
+                        navController.navigate(item.route) {
+                            popUpTo(navController.graph.startDestinationId) {
+                                saveState = true
+                            }
+                            launchSingleTop = true
+                            restoreState = true
+                        }
                     }
-                }},
+                },
                 icon = {
                     Icon(
                         imageVector = item.icon,
@@ -211,7 +230,32 @@ fun BottomNavigationBar(navController: NavHostController) {
 @Preview(showBackground = true)
 @Composable
 fun ParkQuickAppPreview() {
+    val navController = rememberNavController()
+    val sampleParkings = listOf(
+        ParkingCard(
+            id = "1",
+            name = "Cinema Parking",
+            description = "Near entrance",
+            parkingTimeStart = System.currentTimeMillis(),
+            parkingTimeEnd = System.currentTimeMillis() + (2 * 60 * 60 * 1000),
+            isInParking = true,
+            latitude = 0.0,
+            longitude = 0.0,
+            price = 0f,
+            amountOfSpots = 1,
+            openTime = "00:00",
+            closeTime = "23:59"
+        )
+    )
     ParkQuickTheme {
-        ParkQuickApp()
+        ParkQuickAppContent(
+            navController = navController,
+            activeParkings = sampleParkings,
+            historyParkings = emptyList(),
+            onGetParkingById = { id -> sampleParkings.find { it.id == id } },
+            onSaveParking = { _, _, _ -> },
+            isDarkModeEnabled = false,
+            onToggleDarkMode = {}
+        )
     }
 }
