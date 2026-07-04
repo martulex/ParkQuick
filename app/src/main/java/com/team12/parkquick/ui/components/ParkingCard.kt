@@ -26,26 +26,29 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.team12.parkquick.models.Parking
-import com.team12.parkquick.utilities.TimeFormatter
-import java.time.Duration
-import java.time.LocalDateTime
-import kotlin.time.Duration.Companion.seconds
+import com.team12.parkquick.database.ParkingCard
+import kotlinx.coroutines.delay
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
+import java.util.UUID
 
 @Composable
 fun ParkingCard(
-    parking: Parking, onCardClick : () -> Unit,
+    parking: ParkingCard,
+    onCardClick: () -> Unit,
     onRouteClick: (() -> Unit)? = null
 ) {
-    var timeLeftString by remember { mutableStateOf(calculateTimeLeft(parking.pickupTime)) }
+    // Ruft unsere neue Funktion mit dem Millisekunden-Feld auf
+    var timeLeftString by remember { mutableStateOf(calculateTimeLeft(parking.parkingTimeEnd)) }
 
-    // Startet eine reaktive Coroutine, die alle 5 Sekunden die UI aktualisiert
+    // Startet eine reaktive Coroutine, die alle 1 Sekunde die UI aktualisiert
     if (parking.isInParking) {
-        LaunchedEffect(parking.pickupTime) {
+        // Beobachtet die parkingTimeEnd Variable
+        LaunchedEffect(parking.parkingTimeEnd) {
             while (true) {
-                timeLeftString = calculateTimeLeft(parking.pickupTime)
-                // Wichtig: Auf 1 Sekunde beschleunigen, damit das Format 0:12:34 "live" tickt!
-                kotlinx.coroutines.delay(1000)
+                timeLeftString = calculateTimeLeft(parking.parkingTimeEnd)
+                delay(1000)
             }
         }
     }
@@ -89,17 +92,18 @@ fun ParkingCard(
                 verticalAlignment = Alignment.CenterVertically
             ) {
 
+                // Entweder den Live-Timer anzeigen oder einen netten Text für die Historie
+                val historyText = "Beendet am ${SimpleDateFormat("dd.MM.", Locale.getDefault()).format(Date(parking.parkingTimeEnd))}"
+
                 Text(
-                    text = if (parking.isInParking) "Time remaining: $timeLeftString" else TimeFormatter.formatHistoryInfo(
-                        parking
-                    ),
+                    text = if (parking.isInParking) "Verbleibend: $timeLeftString" else historyText,
                     style = MaterialTheme.typography.bodyLarge,
                     color = MaterialTheme.colorScheme.primary
                 )
 
                 if (parking.isInParking) {
                     Button(onClick = onRouteClick ?: {}) {
-                        Text("Route to my car")
+                        Text("Route")
                     }
                 }
             }
@@ -107,42 +111,47 @@ fun ParkingCard(
     }
 }
 
-fun calculateTimeLeft(pickupTime: LocalDateTime): String {
-    val duration = Duration.between(LocalDateTime.now(), pickupTime)
+// NEUE Version der Berechnungsfunktion, die mit Millisekunden (Long) arbeitet
+fun calculateTimeLeft(pickupTimeMillis: Long): String {
+    val currentTime = System.currentTimeMillis()
+    val remainingMillis = pickupTimeMillis - currentTime
 
-    if (duration.isNegative || duration.isZero) {
-        return "Expired!"
+    if (remainingMillis <= 0) {
+        return "Abgelaufen!"
     }
 
-    val totalSeconds = duration.seconds
-    val days = duration.toDays()
-    // Stunden verbleibend nach Abzug der vollen Tage
-    val hours = duration.toHours() % 24
-    val minutes = duration.toMinutes() % 60
+    // Mathematik, um Millisekunden aufzubrechen
+    val totalSeconds = remainingMillis / 1000
+    val days = totalSeconds / (24 * 3600)
+    val hours = (totalSeconds % (24 * 3600)) / 3600
+    val minutes = (totalSeconds % 3600) / 60
     val seconds = totalSeconds % 60
 
     return if (days > 0) {
-        // Format für mehr als 24 Stunden: "1D 10H 12M"
-        "${days}D ${hours}H ${minutes}M"
+        "${days}T ${hours}S ${minutes}M"
     } else {
-        // Format für weniger als 24 Stunden mit Sekunden-Präzision: "00:12:34"
-        String.format("%02d:%02d:%02d", hours, minutes, seconds)
+        String.format(Locale.getDefault(), "%02d:%02d:%02d", hours, minutes, seconds)
     }
 }
 
 @Preview(showBackground = true)
 @Composable
 fun ParkingCardPreviewActive() {
-    val sampleParking = Parking(
-        id = "1",
+    val sampleParking = ParkingCard(
         name = "TH Köln Parkplatz",
-        notes = null,
         latitude = 50.0,
         longitude = 7.0,
-        imageUrls = emptyList(),
-        parkTime = LocalDateTime.now().minusMinutes(25),
-        pickupTime = LocalDateTime.now().plusHours(2),
-        isInParking = true
+        parkingTimeStart = System.currentTimeMillis(),
+        // + 2 Stunden und 15 Minuten in die Zukunft
+        parkingTimeEnd = System.currentTimeMillis() + (2 * 60 * 60 * 1000) + (15 * 60 * 1000),
+        isInParking = true,
+        id = UUID.randomUUID().toString(),
+        price = 12f,
+        description = "",
+        image = "",
+        amountOfSpots = 12,
+        openTime = "",
+        closeTime = ""
     )
     ParkingCard(
         parking = sampleParking,
@@ -154,16 +163,20 @@ fun ParkingCardPreviewActive() {
 @Preview(showBackground = true)
 @Composable
 fun ParkingCardPreviewHistory() {
-    val sampleParking = Parking(
-        id = "1",
+    val sampleParking = ParkingCard(
         name = "TH Köln Parkplatz",
-        notes = null,
         latitude = 50.0,
         longitude = 7.0,
-        imageUrls = emptyList(),
-        parkTime = LocalDateTime.now().minusMinutes(25),
-        pickupTime = LocalDateTime.now().plusHours(2),
-        isInParking = false
+        parkingTimeStart = System.currentTimeMillis() - (5 * 60 * 60 * 1000), // Start vor 5 Stunden
+        parkingTimeEnd = System.currentTimeMillis() - (3 * 60 * 60 * 1000),   // Ende vor 3 Stunden
+        isInParking = false,
+        id = UUID.randomUUID().toString(),
+        price = 12f,
+        description = "",
+        image = "",
+        amountOfSpots = 10,
+        openTime = "10:00",
+        closeTime = "23:00"
     )
     ParkingCard(
         parking = sampleParking,
