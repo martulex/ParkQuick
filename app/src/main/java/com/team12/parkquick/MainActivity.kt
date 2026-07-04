@@ -10,6 +10,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -32,13 +33,13 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.livedata.observeAsState
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.toRoute
 import com.team12.parkquick.settings.UserSettingsViewModel
 import com.team12.parkquick.ui.navigation.AddParkingRoute
 import com.team12.parkquick.ui.navigation.BottomNavItem
+import com.team12.parkquick.ui.navigation.DiscoverRoute
 import com.team12.parkquick.ui.navigation.HistoryRoute
 import com.team12.parkquick.ui.navigation.HomeRoute
 import com.team12.parkquick.ui.navigation.ParkingDetailRoute
@@ -77,8 +78,8 @@ fun ParkQuickApp() {
 
     val parkingViewModel: ParkingViewModel = viewModel()
     val usersettingsViewModel : UserSettingsViewModel = viewModel()
-    val activeParkings by parkingViewModel.activeParkings.observeAsState(initial = emptyList())
-    val historyParkings by parkingViewModel.historyParkings.observeAsState(initial = emptyList())
+    val activeParkings by parkingViewModel.activeParkings.collectAsStateWithLifecycle(emptyList())
+    val historyParkings by parkingViewModel.historyParkings.collectAsStateWithLifecycle(emptyList())
     Scaffold(
         topBar = {
             ParkQuickTopBar(navController)
@@ -106,7 +107,8 @@ fun ParkQuickApp() {
 
                 ParkingDetailScreen(
                     parkingId = route.parkingId,
-                    viewModel = parkingViewModel
+                    viewModel = parkingViewModel,
+                    onNavigateBack = { navController.popBackStack() }
                 )
 
             }

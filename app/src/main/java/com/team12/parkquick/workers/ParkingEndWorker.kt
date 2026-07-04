@@ -1,19 +1,35 @@
 package com.team12.parkquick.workers
 
 import android.content.Context
-import androidx.work.Worker
+import androidx.work.CoroutineWorker // Coroutine Worker statt Worker für Datenbank
 import androidx.work.WorkerParameters
-import com.team12.parkquick.viewmodels.ParkingViewModel
+import com.team12.parkquick.database.AppRoomDatabase
+import com.team12.parkquick.database.RoomParkingCardRepository
 
-class ParkingEndWorker(context: Context, workerParams: WorkerParameters) : Worker(context, workerParams) {
-    override fun doWork(): Result {
+class ParkingEndWorker(
+    context: Context,
+    workerParams: WorkerParameters
+) : CoroutineWorker(context, workerParams) {
+
+    override suspend fun doWork(): Result {
         val parkingId = inputData.getString("PARKING_ID") ?: return Result.failure()
 
-        // Da die App im Hintergrund laufen oder geschlossen sein kann,
-        // greifen wir auf eine statische/zentrale Instanz oder Datenbank zu.
-        // Stand jetzt (In-Memory Liste): Wir setzen den Status um.
-        ParkingViewModel.setParkingExpired(parkingId)
+        val database = AppRoomDatabase.getInstance(applicationContext)
+        val dao = database.parkingCardDao()
+        val repository = RoomParkingCardRepository(dao)
 
-        return Result.success()
+        try {
+            val card = repository.getParkingCardById(parkingId)
+
+            if (card != null) {
+                val updatedCard = card.copy(isInParking = false)
+
+                repository.updateParkingCard(updatedCard)
+            }
+
+            return Result.success()
+        } catch (e: Exception) {
+            return Result.failure()
+        }
     }
 }

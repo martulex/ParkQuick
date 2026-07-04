@@ -18,13 +18,13 @@ class RoomParkingCardRepository (private val parkingCardDao: ParkingCardDao)  {
 
     suspend fun updateParkingCard(parkingCard: ParkingCard) {
 
-        return parkingCardDao.updateParkingCard(parkingCard)
+        parkingCardDao.updateParkingCard(parkingCard)
 
     }
 
     suspend fun deleteParkingCard(parkingCard: ParkingCard) {
 
-        return parkingCardDao.deleteParkingCard(parkingCard)
+        parkingCardDao.deleteParkingCard(parkingCard)
 
     }
 }

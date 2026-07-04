@@ -1,27 +1,24 @@
 package com.team12.parkquick.utilities
 
-import com.team12.parkquick.models.Parking
-import java.time.LocalDateTime
-import java.time.Duration
-import java.time.format.DateTimeFormatter
+import com.team12.parkquick.database.ParkingCard
+import java.text.SimpleDateFormat
+import java.util.Date
 import java.util.Locale
 
 object TimeFormatter {
-    private val dateFormatter = DateTimeFormatter.ofPattern("dd.MM.")
-    private val timeFormatter = DateTimeFormatter.ofPattern("HH:mm")
-    private val hourOnlyFormatter = DateTimeFormatter.ofPattern("HH")
+    // Unsere Formatierer für Millisekunden
+    private val dateFormatter = SimpleDateFormat("dd.MM.", Locale.getDefault())
+    private val timeFormatter = SimpleDateFormat("HH:mm", Locale.getDefault())
+    private val fullFormatter = SimpleDateFormat("dd.MM. HH:mm", Locale.getDefault())
 
-    private val formatter = DateTimeFormatter.ofPattern(
-        "dd.MM. HH:mm",
-        Locale.GERMANY
-    )
+    fun formatRemainingTime(parkTimeMillis: Long, pickupTimeMillis: Long): String {
+        val durationMillis = pickupTimeMillis - parkTimeMillis
 
-    fun formatRemainingTime(parkTime: LocalDateTime, pickupTime: LocalDateTime): String {
-        val duration = Duration.between(parkTime, pickupTime)
+        if (durationMillis <= 0) return "0 Minuten"
 
-        val days = duration.toDays()
-        val hours = duration.toHours() % 24
-        val minutes = duration.toMinutes() % 60
+        val days = durationMillis / (1000 * 60 * 60 * 24)
+        val hours = (durationMillis / (1000 * 60 * 60)) % 24
+        val minutes = (durationMillis / (1000 * 60)) % 60
 
         return when {
             days > 0 -> "$days Tage $hours Stunden"
@@ -30,10 +27,9 @@ object TimeFormatter {
         }
     }
 
-    fun formatParkingInfo(parking: Parking, isActive: Boolean): String {
-
-        val start = parking.parkTime.format(formatter)
-        val end = parking.pickupTime.format(formatter)
+    fun formatParkingInfo(parking: ParkingCard, isActive: Boolean): String {
+        val start = fullFormatter.format(Date(parking.parkingTimeStart))
+        val end = fullFormatter.format(Date(parking.parkingTimeEnd))
 
         return if (isActive) {
             "Geparkt seit: \n$start"
@@ -42,20 +38,26 @@ object TimeFormatter {
         }
     }
 
-    fun formatTimeOnly(dateTime: LocalDateTime): String {
-        return dateTime.format(formatter)
+    fun formatTimeOnly(timeMillis: Long): String {
+        return fullFormatter.format(Date(timeMillis))
     }
 
-    fun formatHistoryInfo(parking: Parking): String {
-        val start = parking.parkTime
-        val end = parking.pickupTime
+    fun formatHistoryInfo(parking: ParkingCard): String {
+        val startDate = Date(parking.parkingTimeStart)
+        val endDate = Date(parking.parkingTimeEnd)
 
-        return if (start.toLocalDate() == end.toLocalDate()) {
+        val startDay = dateFormatter.format(startDate)
+        val endDay = dateFormatter.format(endDate)
+
+        val startTime = timeFormatter.format(startDate)
+        val endTime = timeFormatter.format(endDate)
+
+        return if (startDay == endDay) {
             // Gleicher Tag: "Parked on 21.05. from 11:00 till 12:00"
-            "Parked on ${start.format(dateFormatter)} from ${start.format(timeFormatter)} till ${end.format(timeFormatter)}"
+            "Parked on $startDay from $startTime till $endTime"
         } else {
             // Verschiedene Tage: "Parked from 21.06. 17:12 until 22.06. 10:00"
-            "Parked from ${start.format(dateFormatter)} ${start.format(timeFormatter)} until ${end.format(dateFormatter)} ${end.format(timeFormatter)}"
+            "Parked from $startDay $startTime until $endDay $endTime"
         }
     }
 }

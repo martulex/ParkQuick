@@ -1,15 +1,8 @@
 package com.team12.parkquick.ui.screens
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -24,42 +17,51 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.team12.parkquick.models.Parking
+import com.team12.parkquick.database.ParkingCard
 import com.team12.parkquick.ui.theme.ParkQuickTheme
-import com.team12.parkquick.ui.components.ParkingCard
-import com.team12.parkquick.utilities.TimeFormatter
-import java.time.LocalDateTime
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 @Composable
-fun ParkingHistoryScreen(historyList: List<Parking>, onCardClick : (String) -> Unit) {
+fun ParkingHistoryScreen(historyList: List<ParkingCard>, onCardClick: (String) -> Unit) {
 
     LazyColumn(
         modifier = Modifier
             .fillMaxSize()
             .padding(horizontal = 16.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp),
-        contentPadding = PaddingValues(top = 16.dp) // // Abstand, damit die erste Karte nicht direkt an der Top Bar klebt
+        contentPadding = PaddingValues(top = 16.dp, bottom = 16.dp)
     ) {
 
         items(historyList) { item ->
-            ParkingCard(
-                parking = item,
-                onCardClick = {onCardClick(item.id)},
-                onRouteClick = {}
+            ParkingHistoryCard(
+                item = item,
+                onClick = { onCardClick(item.id) }
             )
         }
     }
 }
 
 @Composable
-fun ParkingHistoryCard(item: Parking) {
+fun ParkingHistoryCard(item: ParkingCard, onClick: () -> Unit) { // 1. Auf ParkingCard geändert
+
+    // 2. Datum-Formatierer für unsere Long-Zahlen (Millisekunden)
+    val timeFormatter = SimpleDateFormat("dd.MM.yyyy HH:mm", Locale.getDefault())
+
+    // 3. Dauer berechnen (Differenz in Millisekunden umrechnen in Stunden & Minuten)
+    val durationMillis = item.parkingTimeEnd - item.parkingTimeStart
+    val hours = (durationMillis / (1000 * 60 * 60)).toInt()
+    val minutes = ((durationMillis / (1000 * 60)) % 60).toInt()
+    val durationText = "${hours}h ${minutes}m"
 
     Card(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable { onClick() }, // Klickbar gemacht!
         shape = RoundedCornerShape(16.dp),
         elevation = CardDefaults.cardElevation(defaultElevation = 6.dp)
     ) {
-
         Column(
             modifier = Modifier.padding(16.dp)
         ) {
@@ -68,13 +70,9 @@ fun ParkingHistoryCard(item: Parking) {
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(150.dp)
-                    .background(
-                        Color(0xFFDDEAF6),
-                        RoundedCornerShape(12.dp)
-                    ),
+                    .background(Color(0xFFDDEAF6), RoundedCornerShape(12.dp)),
                 contentAlignment = Alignment.Center
             ) {
-
                 Text(
                     text = "Map Preview",
                     fontSize = 18.sp,
@@ -92,9 +90,9 @@ fun ParkingHistoryCard(item: Parking) {
 
             Spacer(modifier = Modifier.height(6.dp))
 
-            Text(text = "Park time: ${item.parkTime}")
-            Text(text = "Pickup time: ${item.pickupTime}")
-            Text(text = "Duration: ${TimeFormatter.formatRemainingTime(item.parkTime, item.pickupTime)}")
+            Text(text = "Park time: ${timeFormatter.format(Date(item.parkingTimeStart))}")
+            Text(text = "Pickup time: ${timeFormatter.format(Date(item.parkingTimeEnd))}")
+            Text(text = "Duration: $durationText")
         }
     }
 }
@@ -104,35 +102,40 @@ fun ParkingHistoryCard(item: Parking) {
 fun ParkingHistoryPreview() {
     ParkQuickTheme {
         ParkingHistoryScreen(
-            listOf(
-                Parking(
+            historyList = listOf(
+                // 5. Preview nutzt jetzt die neue ParkingCard mit Millisekunden
+                ParkingCard(
                     id = "1",
                     name = "Flughafen Köln",
                     latitude = 50.8659,
                     longitude = 7.1427,
-                    parkTime = LocalDateTime.now(),
-                    pickupTime = LocalDateTime.now().plusDays(2),
-                    isInParking = false
+                    // Start war vor 2 Tagen (48 Stunden in Millisekunden)
+                    parkingTimeStart = System.currentTimeMillis() - (48 * 60 * 60 * 1000),
+                    parkingTimeEnd = System.currentTimeMillis(),
+                    isInParking = false,
+                    price = 23f,
+                    description = "",
+                    image = "",
+                    amountOfSpots = 4,
+                    openTime = "00:00",
+                    closeTime = "12:00"
                 ),
-                Parking(
+                ParkingCard(
                     id = "2",
-                    name = "Somewhere",
-                    latitude = 50.8659,
-                    longitude = 7.1427,
-                    parkTime = LocalDateTime.now(),
-                    pickupTime = LocalDateTime.now().plusDays(2),
-                    isInParking = false
-                ),
-                Parking(
-                    id = "3",
                     name = "Campus Parking",
                     latitude = 50.8659,
                     longitude = 7.1427,
-                    parkTime = LocalDateTime.now(),
-                    pickupTime = LocalDateTime.now().plusDays(2),
-                    isInParking = false
+                    // Start war vor 5 Stunden
+                    parkingTimeStart = System.currentTimeMillis() - (5 * 60 * 60 * 1000),
+                    parkingTimeEnd = System.currentTimeMillis(),
+                    isInParking = false,
+                    price = 12f,
+                    description = "",
+                    image = "",
+                    amountOfSpots = 2,
+                    openTime = "12:00",
+                    closeTime = "23:00"
                 )
-
             ),
             onCardClick = {}
         )

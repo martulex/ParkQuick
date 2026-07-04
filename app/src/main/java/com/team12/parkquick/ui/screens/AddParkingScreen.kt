@@ -52,7 +52,7 @@ import java.util.Calendar
 fun AddParkingScreen(onNavigateBack : () -> Unit, viewModel: ParkingViewModel) {
 
     val context = LocalContext.current
-    var notes by remember { mutableStateOf("") }
+    var description by remember { mutableStateOf("") }
     var selectedMinutes by remember { mutableStateOf(60L) }
     var name by remember { mutableStateOf("") }
     var isCustomSelected by remember { mutableStateOf(false) }
@@ -177,8 +177,8 @@ fun AddParkingScreen(onNavigateBack : () -> Unit, viewModel: ParkingViewModel) {
 
         // Notes
         OutlinedTextField(
-            value = notes, // Das Textfeld schaut in die Merkzelle notes und zeigt dem Nutzer immer genau den Text an, der dort gerade abgespeichert ist.
-            onValueChange = { notes = it }, // Jedes Mal, wenn der Nutzer eine Taste drückt, fängt Android den neuen Text ab (it) und speichert ihn sofort in notes ab, damit der Bildschirm sich mit dem neuen Buchstaben aktualisieren kann.
+            value = description, // Das Textfeld schaut in die Merkzelle notes und zeigt dem Nutzer immer genau den Text an, der dort gerade abgespeichert ist.
+            onValueChange = { description = it }, // Jedes Mal, wenn der Nutzer eine Taste drückt, fängt Android den neuen Text ab (it) und speichert ihn sofort in notes ab, damit der Bildschirm sich mit dem neuen Buchstaben aktualisieren kann.
             label = { Text("Notes (e.g. Floor, Pillar number)") },
             modifier = Modifier.fillMaxWidth(),
             minLines = 3
@@ -188,7 +188,7 @@ fun AddParkingScreen(onNavigateBack : () -> Unit, viewModel: ParkingViewModel) {
 
         // Bestätigen
         Button(
-            onClick = { viewModel.addNewParking(selectedMinutes, name, notes)
+            onClick = { viewModel.addNewParking(selectedMinutes, name, description)
                 onNavigateBack() },
             modifier = Modifier.fillMaxWidth()
         ) {

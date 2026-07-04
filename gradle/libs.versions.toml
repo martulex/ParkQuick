@@ -16,8 +16,10 @@ runtimeLivedata = "1.11.3"
 workRuntimeKtx = "2.9.0"
 datastoreCore = "1.2.1"
 datastoreCoreJvm = "1.2.1"
-room3CommonJvm = "3.0.0-rc01"
-room3Runtime = "3.0.0-rc01"
+room3CommonJvm = "3.0.0"
+room3Runtime = "3.0.0"
+room3 = "3.0.0"
+ksp = "2.2.10-2.0.2"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -45,9 +47,11 @@ androidx-datastore-core = { group = "androidx.datastore", name = "datastore-core
 androidx-datastore-core-jvm = { group = "androidx.datastore", name = "datastore-core-jvm", version.ref = "datastoreCoreJvm" }
 androidx-room3-common-jvm = { group = "androidx.room3", name = "room3-common-jvm", version.ref = "room3CommonJvm" }
 androidx-room3-runtime = { group = "androidx.room3", name = "room3-runtime", version.ref = "room3Runtime" }
+androidx-room3-compiler = { group = "androidx.room3", name = "room3-compiler", version.ref = "room3" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
 kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
 kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
+ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
 

@@ -10,7 +10,8 @@ object HomeRoute
 
 @Serializable
 object AddParkingRoute
-
+@Serializable
+object DiscoverRoute
 @Serializable
 object HistoryRoute
 

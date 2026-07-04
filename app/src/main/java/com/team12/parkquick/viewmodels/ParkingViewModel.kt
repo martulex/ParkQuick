@@ -1,123 +1,72 @@
 package com.team12.parkquick.viewmodels
 
 import android.app.Application
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.AndroidViewModel
-import androidx.lifecycle.map
+import androidx.lifecycle.viewModelScope
 import androidx.work.Data
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
-import com.team12.parkquick.models.Parking
+import com.team12.parkquick.database.AppRoomDatabase
+import com.team12.parkquick.database.ParkingCard
+import com.team12.parkquick.database.RoomParkingCardRepository
 import com.team12.parkquick.workers.ParkingEndWorker
-import java.time.Duration
-import java.time.LocalDateTime
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
 import java.util.UUID
 import java.util.concurrent.TimeUnit
 
 class ParkingViewModel(application: Application) : AndroidViewModel(application) {
 
-    companion object {
-        // Temporäre In-Memory-Schnittstelle für den Worker, solange wir keine DB haben
-        private val _staticParkings = MutableLiveData<List<Parking>>(emptyList())
+    private val database = AppRoomDatabase.getInstance(application)
+    private val dao = database.parkingCardDao()
+    private val repository = RoomParkingCardRepository(dao)
 
-        fun setParkingExpired(id: String) {
-            val currentList = _staticParkings.value.orEmpty().map {
-                if (it.id == id) it.copy(isInParking = false) else it
-            }
-            // Da der Worker aus einem Hintergrund-Thread aufruft, nutzen wir postValue
-            _staticParkings.postValue(currentList)
-        }
-    }
+    // Die Live-Daten aus Room (Flow)
+    val allParkings = repository.getAllParkingCards()
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
-    private val _parkings = _staticParkings
+    val activeParkings = allParkings.map { list -> list.filter { it.isInParking } }
+    val historyParkings = allParkings.map { list -> list.filter { !it.isInParking } }
 
-    val activeParkings: LiveData<List<Parking>> = _parkings.map { list -> list.filter { it.isInParking } }
-    val historyParkings: LiveData<List<Parking>> = _parkings.map { list -> list.filter { !it.isInParking } }
+    fun addNewParking(selectedMinutes: Long, name: String, description: String) {
+        viewModelScope.launch {
+            val startTime = System.currentTimeMillis()
+            val endTime = startTime + (selectedMinutes * 60 * 1000)
 
-    init {
-        if (_parkings.value.orEmpty().isEmpty()) {
-            _parkings.value = listOf(
-                Parking(
-                    "1",
-                    "Flughafen Köln",
-                    null,
-                    50.8659,
-                    7.1427,
-                    emptyList(),
-                    LocalDateTime.now(),
-                    LocalDateTime.now().plusDays(2),
-                    false
-                ),
-                Parking(
-                    "2",
-                    "Zuhause Parkplatz",
-                    null,
-                    51.0276,
-                    7.5654,
-                    emptyList(),
-                    LocalDateTime.now().minusHours(5),
-                    LocalDateTime.now().plusHours(10),
-                    false
-                )
+            val newSpot = ParkingCard(
+                id = UUID.randomUUID().toString(),
+                name = name.ifEmpty { "Unbenannter Parkplatz" },
+                description = description,
+                price = 0f,
+                latitude = 50.9,
+                longitude = 6.9,
+                parkingTimeStart = startTime,
+                parkingTimeEnd = endTime,
+                isInParking = true, // Ist jetzt aktiv
+                image = "",
+                amountOfSpots = 5,
+                openTime = "08:00",
+                closeTime = "23:00",
             )
-            addParking(Parking(
-                "3",
-                "Bahnhof Gummersbach",
-                null,
-                51.0260,
-                7.5660,
-                emptyList(),
-                LocalDateTime.now(),
-                LocalDateTime.now().plusSeconds(30),
-                true
-            ))
+
+            // In die Datenbank schreiben
+            repository.insert(newSpot)
+
+            // Timer starten
+            startBackgroundTimer(newSpot)
         }
     }
+    private fun startBackgroundTimer(card: ParkingCard) {
+        val currentTime = System.currentTimeMillis()
+        val delayInMillis = card.parkingTimeEnd - currentTime
 
-    fun addParking(parking: Parking) {
-        val currentList = _parkings.value ?: emptyList()
-        _parkings.value = currentList + parking
+        if (delayInMillis > 0) {
+            val delayInSeconds = delayInMillis / 1000
 
-        startBackgroundTimer(parking)
-    }
-
-    fun addNewParking(durationMinutes : Long, name : String, notes : String) {
-
-        val newParking = Parking(
-            id = UUID.randomUUID().toString(),
-            name = name,
-            notes = notes,
-            latitude = 51.0276,
-            longitude = 7.5654,
-            parkTime = LocalDateTime.now(),
-            pickupTime = LocalDateTime.now().plusMinutes(durationMinutes),
-            isInParking = true
-        )
-
-        addParking(newParking)
-
-    }
-
-    fun addNewParkingWithExactTime(pickupTime: LocalDateTime, name: String, notes: String) {
-        val newParking = Parking(
-            id = UUID.randomUUID().toString(),
-            name = name,
-            notes = notes,
-            latitude = 51.0276,
-            longitude = 7.5654,
-            parkTime = LocalDateTime.now(),
-            pickupTime = pickupTime,
-            isInParking = true
-        )
-        addParking(newParking)
-    }
-
-    private fun startBackgroundTimer(parking: Parking) {
-        val delayInSeconds = Duration.between(LocalDateTime.now(), parking.pickupTime).seconds
-        if (delayInSeconds > 0) {
             val inputData = Data.Builder()
-                .putString("PARKING_ID", parking.id)
+                .putString("PARKING_ID", card.id)
                 .build()
 
             val endWorkRequest = OneTimeWorkRequestBuilder<ParkingEndWorker>()
@@ -126,15 +75,15 @@ class ParkingViewModel(application: Application) : AndroidViewModel(application)
                 .build()
 
             WorkManager.getInstance(getApplication()).enqueue(endWorkRequest)
-        } else {
-            // Falls Zeit bereits in der Vergangenheit liegt, sofort umschalten
-            setParkingExpired(parking.id)
         }
     }
+    suspend fun getParkingByID(id: String): ParkingCard? {
+        return repository.getParkingCardById(id)
+    }
 
-    fun getParkingByID(id : String) : Parking? {
-
-        return _parkings.value?.find { it.id == id }
-
+    fun deleteParking(card: ParkingCard) {
+        viewModelScope.launch {
+            repository.deleteParkingCard(card)
+        }
     }
 }

@@ -13,17 +13,18 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.team12.parkquick.models.Parking
+import com.team12.parkquick.database.ParkingCard
 import com.team12.parkquick.ui.components.ParkingCard
 import com.team12.parkquick.ui.theme.ParkQuickTheme
 import java.time.LocalDateTime
 
 @Composable
-fun HomeScreen(onNavigateToAddParking: () -> Unit, parkings: List<Parking>, onCardClick : (String) -> Unit) {
+fun HomeScreen(onNavigateToAddParking: () -> Unit, parkings: List<ParkingCard>, onCardClick: (String) -> Unit) {
 
     if(parkings.isEmpty()) {
         Column(
@@ -80,21 +81,31 @@ fun AddParkingButton(onNavigateToAddParking: () -> Unit) {
 @Preview(showBackground = true)
 @Composable
 fun MitParkings() {
-    val parkings = remember {
-        mutableStateListOf(
-            Parking(
-                id = "3",
-                name = "Bahnhof Gummersbach",
-                latitude = 51.0260,
-                longitude = 7.5660,
-                parkTime = LocalDateTime.now(),
-                pickupTime = LocalDateTime.now().plusHours(6),
-                isInParking = true
-            )
+    // 1. Eine simple listOf reicht für die Vorschau völlig aus!
+    val parkings = listOf(
+        ParkingCard(
+            id = "3",
+            name = "Bahnhof Gummersbach",
+            latitude = 51.0260,
+            longitude = 7.5660,
+            parkingTimeStart = System.currentTimeMillis(),
+            parkingTimeEnd = System.currentTimeMillis() + (6 * 60 * 60 * 1000), // + 6 Stunden
+            isInParking = true,
+            price = 4.50f,
+            description = "Hallo",
+            image = "",
+            amountOfSpots = 12,
+            openTime = "12:00",
+            closeTime = "22:00"
         )
-    }
+    )
+
     ParkQuickTheme {
-        HomeScreen(onNavigateToAddParking = {}, parkings, onCardClick = {})
+        HomeScreen(
+            onNavigateToAddParking = {},
+            parkings = parkings,
+            onCardClick = {}
+        )
     }
 }
 

@@ -5,7 +5,6 @@ import androidx.room3.Delete
 import androidx.room3.Insert
 import androidx.room3.Query
 import androidx.room3.Update
-import com.team12.parkquick.models.Parking
 import kotlinx.coroutines.flow.Flow
 
 @Dao
