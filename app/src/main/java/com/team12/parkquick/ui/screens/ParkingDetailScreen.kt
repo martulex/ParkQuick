@@ -11,10 +11,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.team12.parkquick.database.ParkingCard
 import com.team12.parkquick.ui.components.StaticMapPreview
+import com.team12.parkquick.utilities.LocationUtils
 import com.team12.parkquick.viewmodels.ParkingViewModel
 import java.text.SimpleDateFormat
 import java.util.*
@@ -62,6 +64,8 @@ fun ParkingDetailContent(
         return
     }
 
+    val context = LocalContext.current
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -107,7 +111,9 @@ fun ParkingDetailContent(
             horizontalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             Button(
-                onClick = { /* Route Logik */ },
+                onClick = { 
+                    LocationUtils.openNavigation(context, parkingObj.latitude, parkingObj.longitude)
+                },
                 modifier = Modifier.weight(1f)
             ) {
                 Text("Route")
