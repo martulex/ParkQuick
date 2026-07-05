@@ -47,10 +47,23 @@ import java.time.LocalTime
 import java.util.Calendar
 
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AddParkingScreen(onNavigateBack : () -> Unit, viewModel: ParkingViewModel) {
+    AddParkingContent(
+        onNavigateBack = onNavigateBack,
+        onSaveParking = { selectedMinutes, name, notes ->
+            viewModel.addNewParking(selectedMinutes, name, notes)
+            onNavigateBack()
+        }
+    )
+}
 
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun AddParkingContent(
+    onNavigateBack: () -> Unit,
+    onSaveParking: (Long, String, String?) -> Unit
+) {
     val context = LocalContext.current
     var description by remember { mutableStateOf("") }
     var selectedMinutes by remember { mutableStateOf(60L) }
@@ -177,19 +190,16 @@ fun AddParkingScreen(onNavigateBack : () -> Unit, viewModel: ParkingViewModel) {
 
         // Notes
         OutlinedTextField(
-            value = description, // Das Textfeld schaut in die Merkzelle notes und zeigt dem Nutzer immer genau den Text an, der dort gerade abgespeichert ist.
-            onValueChange = { description = it }, // Jedes Mal, wenn der Nutzer eine Taste drückt, fängt Android den neuen Text ab (it) und speichert ihn sofort in notes ab, damit der Bildschirm sich mit dem neuen Buchstaben aktualisieren kann.
+            value = description,
+            onValueChange = { description = it },
             label = { Text("Notes (e.g. Floor, Pillar number)") },
             modifier = Modifier.fillMaxWidth(),
             minLines = 3
         )
 
-        //Spacer(modifier = Modifier.height(24.dp))
-
         // Bestätigen
         Button(
-            onClick = { viewModel.addNewParking(selectedMinutes, name, description)
-                onNavigateBack() },
+            onClick = { onSaveParking(selectedMinutes, name, description) },
             modifier = Modifier.fillMaxWidth()
         ) {
             Text("Save Parking Spot")

@@ -15,47 +15,63 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.team12.parkquick.database.ParkingCard
 import com.team12.parkquick.viewmodels.ParkingViewModel
+import java.text.SimpleDateFormat
+import java.util.*
 
 @Composable
 fun ParkingDetailScreen(
     parkingId: String,
     viewModel: ParkingViewModel,
-    onNavigateBack: () -> Unit // Wichtig für den Delete-Button!
+    onNavigateBack: () -> Unit
 ) {
-    // 1. States für die asynchrone Datenbankabfrage
     var parkingObj by remember { mutableStateOf<ParkingCard?>(null) }
     var isLoading by remember { mutableStateOf(true) }
 
-    // 2. Im Hintergrund aus der Datenbank laden
     LaunchedEffect(parkingId) {
         parkingObj = viewModel.getParkingByID(parkingId)
         isLoading = false
     }
 
-    // 3. Lade-Bildschirm anzeigen
     if (isLoading) {
-        return Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-            CircularProgressIndicator() // Zeigt einen schönen Lade-Kreis
+        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+            CircularProgressIndicator()
         }
+    } else {
+        ParkingDetailContent(
+            parkingObj = parkingObj,
+            onDeleteClick = {
+                parkingObj?.let {
+                    viewModel.deleteParking(it)
+                    onNavigateBack()
+                }
+            }
+        )
     }
+}
 
-    // 4. Fehler-Bildschirm (falls die ID nicht in der DB existiert)
-    val card = parkingObj
-    if (card == null) {
-        return Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+@Composable
+fun ParkingDetailContent(
+    parkingObj: ParkingCard?,
+    onDeleteClick: () -> Unit = {}
+) {
+    if (parkingObj == null) {
+        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
             Text("Parking Spot not found")
         }
+        return
     }
 
-    // Layout
     Column(
         modifier = Modifier
             .fillMaxSize()
             .padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-
-        Text(text = card.name, style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold)
+        Text(
+            text = parkingObj.name,
+            style = MaterialTheme.typography.headlineMedium,
+            fontWeight = FontWeight.Bold
+        )
 
         // Map Platzhalter
         Box(
@@ -80,28 +96,35 @@ fun ParkingDetailScreen(
 
         HorizontalDivider(color = Color.LightGray)
 
-        // Spacer drückt die Buttons ganz nach unten an den Bildschirmrand
+        // Info-Bereiche
+        val sdf = SimpleDateFormat("HH:mm, dd.MM.yyyy", Locale.getDefault())
+        
+        Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+            Text(text = "Notes:", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+            Text(text = parkingObj.description.ifEmpty { "No notes provided." })
+        }
+
+        Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+            Text(text = "Parking Time:", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+            Text(text = "From: ${sdf.format(Date(parkingObj.parkingTimeStart))}")
+            Text(text = "Until: ${sdf.format(Date(parkingObj.parkingTimeEnd))}")
+        }
+
         Spacer(modifier = Modifier.weight(1f))
 
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-
-            // Route Button
             Button(
-                onClick = { /* Route Logik kommt später */ },
+                onClick = { /* Route Logik */ },
                 modifier = Modifier.weight(1f)
             ) {
                 Text("Route")
             }
 
-            // Delete Button MIT Logik!
             Button(
-                onClick = {
-                    viewModel.deleteParking(card) // Löscht den Eintrag aus der Datenbank
-                    onNavigateBack()              // Geht zurück zum Home-Screen
-                },
+                onClick = onDeleteClick,
                 modifier = Modifier.weight(1f),
                 colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
             ) {
