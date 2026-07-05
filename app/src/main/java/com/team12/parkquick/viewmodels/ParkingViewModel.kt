@@ -39,8 +39,10 @@ class ParkingViewModel(application: Application) : AndroidViewModel(application)
      * @param minutes Duration of parking in minutes.
      * @param name Name of the parking spot.
      * @param notes Optional notes about the parking spot.
+     * @param lat Latitude of the parking spot.
+     * @param lng Longitude of the parking spot.
      */
-    fun addNewParking(minutes: Long, name: String, notes: String? = null) {
+    fun addNewParking(minutes: Long, name: String, notes: String? = null, lat: Double, lng: Double) {
         viewModelScope.launch {
             val startTime = System.currentTimeMillis()
             val endTime = startTime + (minutes * 60 * 1000)
@@ -50,8 +52,8 @@ class ParkingViewModel(application: Application) : AndroidViewModel(application)
                 name = name.ifEmpty { "Unbenannter Parkplatz" },
                 description = notes ?: "",
                 price = 0f,
-                latitude = 50.9, // TODO: Replace with actual GPS coordinates
-                longitude = 6.9,
+                latitude = lat,
+                longitude = lng,
                 parkingTimeStart = startTime,
                 parkingTimeEnd = endTime,
                 isInParking = true,
