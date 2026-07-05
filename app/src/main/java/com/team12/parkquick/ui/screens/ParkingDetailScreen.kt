@@ -20,6 +20,9 @@ import com.team12.parkquick.utilities.LocationUtils
 import com.team12.parkquick.viewmodels.ParkingViewModel
 import java.text.SimpleDateFormat
 import java.util.*
+import androidx.compose.foundation.Image
+import androidx.compose.ui.layout.ContentScale
+import coil.compose.rememberAsyncImagePainter
 
 @Composable
 fun ParkingDetailScreen(
@@ -77,6 +80,17 @@ fun ParkingDetailContent(
             style = MaterialTheme.typography.headlineMedium,
             fontWeight = FontWeight.Bold
         )
+        if (parkingObj.image.isNotBlank()) {
+            Image(
+                painter = rememberAsyncImagePainter(parkingObj.image),
+                contentDescription = "Parking photo",
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(220.dp)
+                    .clip(RoundedCornerShape(12.dp)),
+                contentScale = ContentScale.Crop
+            )
+        }
 
         // Map Preview
         StaticMapPreview(

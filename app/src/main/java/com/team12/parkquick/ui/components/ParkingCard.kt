@@ -33,6 +33,12 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 import java.util.UUID
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.layout.ContentScale
+import coil.compose.rememberAsyncImagePainter
 
 @Composable
 fun ParkingCard(
@@ -68,14 +74,31 @@ fun ParkingCard(
 
             Spacer(modifier = Modifier.height(8.dp))
 
-            // Map Preview
-            StaticMapPreview(
-                lat = parking.latitude,
-                lng = parking.longitude,
+            // Placeholder Map / Image
+            Box(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(140.dp)
-            )
+                    .clip(MaterialTheme.shapes.small)
+            ) {
+                if (parking.image.isNotBlank()) {
+                    Image(
+                        painter = rememberAsyncImagePainter(parking.image),
+                        contentDescription = "Parking Photo",
+                        modifier = Modifier.fillMaxSize(),
+                        contentScale = ContentScale.Crop
+                    )
+                } else {
+                    StaticMapPreview(
+                        lat = parking.latitude,
+                        lng = parking.longitude,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(140.dp)
+                    )
+                }
+            }
+
 
             Row(
                 modifier = Modifier

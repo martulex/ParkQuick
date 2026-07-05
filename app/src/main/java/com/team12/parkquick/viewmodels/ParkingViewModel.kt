@@ -42,7 +42,7 @@ class ParkingViewModel(application: Application) : AndroidViewModel(application)
      * @param lat Latitude of the parking spot.
      * @param lng Longitude of the parking spot.
      */
-    fun addNewParking(minutes: Long, name: String, notes: String? = null, lat: Double, lng: Double) {
+    fun addNewParking(minutes: Long, name: String, notes: String? = null, lat: Double, lng: Double, image: String ="") {
         viewModelScope.launch {
             val startTime = System.currentTimeMillis()
             val endTime = startTime + (minutes * 60 * 1000)
@@ -57,7 +57,7 @@ class ParkingViewModel(application: Application) : AndroidViewModel(application)
                 parkingTimeStart = startTime,
                 parkingTimeEnd = endTime,
                 isInParking = true,
-                image = "",
+                image = image,
                 amountOfSpots = 1,
                 openTime = "00:00",
                 closeTime = "23:59",
