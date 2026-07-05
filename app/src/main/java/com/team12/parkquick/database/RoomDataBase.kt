@@ -5,7 +5,7 @@ import androidx.room3.Database
 import androidx.room3.Room
 import androidx.room3.RoomDatabase
 
-@Database(entities = [ParkingCard::class], version = 1)
+@Database(entities = [ParkingCard::class], version = 2)
 abstract class AppRoomDatabase : RoomDatabase() {
     abstract fun parkingCardDao(): ParkingCardDao
     companion object {
@@ -17,7 +17,7 @@ abstract class AppRoomDatabase : RoomDatabase() {
                     context.applicationContext,
                     AppRoomDatabase::class.java,
                     DB_NAME
-                ).build().also { INSTANCE = it }
+                ).fallbackToDestructiveMigration().build().also { INSTANCE = it }
             }
         }
     }
