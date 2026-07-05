@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Explore
 import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Settings
@@ -49,6 +50,9 @@ import com.team12.parkquick.ui.screens.SettingsScreenContent
 import com.team12.parkquick.ui.screens.HomeScreen
 import com.team12.parkquick.viewmodels.ParkingViewModel
 import com.team12.parkquick.database.ParkingCard
+import com.team12.parkquick.ui.navigation.DiscoverRoute
+import com.team12.parkquick.ui.screens.DiscoverScreen
+import com.team12.parkquick.viewmodels.DatabaseViewModel
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -78,12 +82,14 @@ fun ParkQuickApp(
 
     val activeParkings by parkingViewModel.activeParkings.collectAsStateWithLifecycle(emptyList())
     val historyParkings by parkingViewModel.historyParkings.collectAsStateWithLifecycle(emptyList())
+    val discoverParkings by parkingViewModel.discoverParkings.collectAsStateWithLifecycle(emptyList())
     val settings by usersettingsViewModel.settingsState.collectAsStateWithLifecycle()
 
     ParkQuickAppContent(
         navController = navController,
         activeParkings = activeParkings,
         historyParkings = historyParkings,
+        discoverParkings = discoverParkings,
         onGetParkingById = { id -> 
             // In-memory lookup from the current state
             activeParkings.find { it.id == id } ?: historyParkings.find { it.id == id }
@@ -100,6 +106,7 @@ fun ParkQuickAppContent(
     navController: NavHostController,
     activeParkings: List<ParkingCard>,
     historyParkings: List<ParkingCard>,
+    discoverParkings : List<ParkingCard>,
     onGetParkingById: (String) -> ParkingCard?,
     onSaveParking: (Long, String, String?) -> Unit,
     onDeleteParking: (ParkingCard) -> Unit,
@@ -160,6 +167,16 @@ fun ParkQuickAppContent(
                     onToggleDarkMode = onToggleDarkMode
                 )
             }
+            composable<DiscoverRoute> {
+                val databaseViewModel: DatabaseViewModel = viewModel()
+                DiscoverScreen(
+                    viewModel = databaseViewModel,
+                    onCardClick = { parkingId ->
+                        navController.navigate(ParkingDetailRoute(parkingId = parkingId))
+                    },
+                    discoverParkings = discoverParkings
+                )
+            }
         }
     }
 }
@@ -169,8 +186,8 @@ fun ParkQuickAppContent(
 fun ParkQuickTopBar(navController: NavHostController) {
     val navBackStackEntry = navController.currentBackStackEntryAsState().value
     val destination = navBackStackEntry?.destination
-    val canNavigateBack = navController.previousBackStackEntry != null && 
-        (destination?.hasRoute<AddParkingRoute>() == true || destination?.hasRoute<ParkingDetailRoute>() == true)
+    val canNavigateBack = navController.previousBackStackEntry != null &&
+            (destination?.hasRoute<AddParkingRoute>() == true || destination?.hasRoute<ParkingDetailRoute>() == true)
 
     CenterAlignedTopAppBar(
         title = {
@@ -197,12 +214,15 @@ fun ParkQuickTopBar(navController: NavHostController) {
     )
 }
 
+
 @Composable
 fun BottomNavigationBar(navController: NavHostController) {
     val items = listOf(
         BottomNavItem(HomeRoute, "Home", Icons.Default.Home),
+        BottomNavItem(DiscoverRoute, "Discover", Icons.Default.Explore),
         BottomNavItem(HistoryRoute, "History", Icons.Default.History),
         BottomNavItem(SettingsRoute, "Settings", Icons.Default.Settings)
+
     )
 
     NavigationBar {
@@ -266,7 +286,8 @@ fun ParkQuickAppPreview() {
             onSaveParking = { _, _, _ -> },
             onDeleteParking = {},
             isDarkModeEnabled = false,
-            onToggleDarkMode = {}
+            onToggleDarkMode = {},
+            discoverParkings = emptyList()
         )
     }
 }

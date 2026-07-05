@@ -13,7 +13,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.team12.parkquick.database.ParkingCard
 import com.team12.parkquick.ui.theme.ParkQuickTheme
 import com.team12.parkquick.viewmodels.DatabaseViewModel
@@ -38,18 +37,17 @@ import androidx.compose.animation.expandVertically
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Search
 
 @Composable
-fun DatabaseScreen(
-    viewModel: DatabaseViewModel,
-    onCardClick: (String) -> Unit
+fun DiscoverScreen(discoverParkings : List<ParkingCard>,
+                   viewModel: DatabaseViewModel,
+                   onCardClick: (String) -> Unit
 ) {
-    // Daten aus dem ViewModel sammeln
-    val cards by viewModel.parkingCards.collectAsStateWithLifecycle()
 
-    DatabaseScreenContent(
-        cards = cards,
+    DiscoverScreenContent(
+        cards = discoverParkings,
         onAddCardClick = { viewModel.addDummyCard() },
         onCardClick = onCardClick
     )
@@ -57,45 +55,29 @@ fun DatabaseScreen(
 
 // Nur UI
 @Composable
-fun DatabaseScreenContent(
+fun DiscoverScreenContent(
     cards: List<ParkingCard>,
     onAddCardClick: () -> Unit,
     onCardClick: (String) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    // Dieser State merkt sich, ob die Suchleiste gerade sichtbar ist oder nicht
     var showSearchArea by remember { mutableStateOf(false) }
-    // Dummy-States für die Vorschau der Textfelder (später kommen die aus dem ViewModel)
     var searchQuery by remember { mutableStateOf("") }
 
-    Scaffold(
-        modifier = modifier.fillMaxSize(),
-        floatingActionButton = {
-            Column(
-                horizontalAlignment = Alignment.End,
-                verticalArrangement = Arrangement.spacedBy(16.dp) // Abstand zwischen den Buttons
-            ) {
-                // 1. Der neue, schwebende Such-Button (etwas kleiner)
-                FloatingActionButton(
-                    onClick = { showSearchArea = !showSearchArea }, // Toggelt die Sichtbarkeit
-                    containerColor = MaterialTheme.colorScheme.primary
-                ) {
-                    Icon(Icons.Default.Search, contentDescription = "Suchen & Filtern")
-                }
-                FloatingActionButton(
-                    onClick = onAddCardClick,
-                    containerColor = MaterialTheme.colorScheme.primary
-                ) {
-                    Icon(Icons.Default.Add, contentDescription = "Hinzufügen", tint = MaterialTheme.colorScheme.onPrimary)
-                }
-            }
-        }
-    ) { paddingValues ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(paddingValues)
-        ) {
+    Box(modifier = modifier.fillMaxSize()) {
+
+        Column(modifier = Modifier.fillMaxSize()) {
+            Text(
+                text = "Discover Nearby \nParking.",
+                style = MaterialTheme.typography.headlineLarge.copy(
+                    fontWeight = FontWeight.ExtraBold
+                ),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    // top = 0.dp funktioniert jetzt perfekt, da kein Scaffold mehr stört!
+                    .padding(start = 16.dp, end = 16.dp, top = 0.dp, bottom = 16.dp)
+            )
+
             AnimatedVisibility(
                 visible = showSearchArea,
                 enter = expandVertically(),
@@ -116,7 +98,6 @@ fun DatabaseScreenContent(
                         singleLine = true
                     )
 
-                    // Platzhalter für zukünftige Filter-Chips (Privat / Community etc.)
                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         FilterChip(selected = true, onClick = { }, label = { Text("Filter A") })
                         FilterChip(selected = false, onClick = { }, label = { Text("Filter B") })
@@ -124,21 +105,42 @@ fun DatabaseScreenContent(
                 }
             }
 
-            // Die Liste der Parkplätze
             if (cards.isEmpty()) {
                 Box(modifier = Modifier.fillMaxSize().weight(1f), contentAlignment = Alignment.Center) {
-                    Text("No parking spot data", style = MaterialTheme.typography.bodyLarge)
+                    Text("No parking spot data found.", style = MaterialTheme.typography.bodyLarge)
                 }
             } else {
                 LazyColumn(
                     modifier = Modifier.fillMaxSize().padding(horizontal = 16.dp),
                     verticalArrangement = Arrangement.spacedBy(12.dp),
-                    contentPadding = PaddingValues(top = 16.dp, bottom = 80.dp) // Extra Platz unten wegen der Buttons!
+                    contentPadding = PaddingValues(top = 0.dp, bottom = 100.dp) // Etwas mehr Platz für die ZWEI Buttons
                 ) {
                     items(cards) { card ->
                         ParkingCardItem(card = card, onClick = { onCardClick(card.id) })
                     }
                 }
+            }
+        }
+
+        Column(
+            modifier = Modifier
+                .align(Alignment.BottomEnd) // Pinnt die Buttons unten rechts fest
+                .padding(16.dp), // Abstand zum Bildschirmrand
+            horizontalAlignment = Alignment.End,
+            verticalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            FloatingActionButton(
+                onClick = { showSearchArea = !showSearchArea },
+                containerColor = MaterialTheme.colorScheme.primary
+            ) {
+                Icon(if (showSearchArea) Icons.Default.Close else Icons.Default.Search, contentDescription = if (showSearchArea) "Close" else "Search",
+                    tint = MaterialTheme.colorScheme.onPrimary)
+            }
+            FloatingActionButton(
+                onClick = onAddCardClick,
+                containerColor = MaterialTheme.colorScheme.primary
+            ) {
+                Icon(Icons.Default.Add, contentDescription = "Add", tint = MaterialTheme.colorScheme.onPrimary)
             }
         }
     }
@@ -166,7 +168,7 @@ fun ParkingCardItem(
             verticalAlignment = Alignment.CenterVertically
         ) {
 
-            // 1. Das Bild (Unverändert)
+            // Das Bild
             AsyncImage(
                 model = ImageRequest.Builder(LocalContext.current)
                     .data(card.image.ifEmpty { null })
@@ -174,7 +176,7 @@ fun ParkingCardItem(
                     .build(),
                 placeholder = painterResource(id = android.R.drawable.ic_menu_gallery),
                 error = painterResource(id = android.R.drawable.ic_menu_gallery),
-                contentDescription = "Vorschau",
+                contentDescription = "Preview",
                 contentScale = ContentScale.Crop,
                 modifier = Modifier.size(80.dp).clip(RoundedCornerShape(8.dp))
             )
@@ -244,9 +246,9 @@ fun ParkingCardItem(
 
 @Preview(showBackground = true, name = "Empty List", showSystemUi = true)
 @Composable
-fun DatabaseScreenPreviewEmpty() {
+fun DiscoverScreenPreviewEmpty() {
     ParkQuickTheme {
-        DatabaseScreenContent(
+        DiscoverScreenContent(
             cards = emptyList(),
             onAddCardClick = {},
             onCardClick = {}
@@ -256,25 +258,26 @@ fun DatabaseScreenPreviewEmpty() {
 
 @Preview(showBackground = true, name = "Interactive List", showSystemUi = true)
 @Composable
-fun DatabaseScreenPreviewPopulated() {
+fun DiscoverScreenPreviewPopulated() {
     val startCards = listOf(
         ParkingCard(
             id = UUID.randomUUID().toString(),
             name = "Parkhaus am Dom",
             price = 2.50f,
             description = "Zentrales Parkhaus.",
-            image = "",
+            image = "https://images.unsplash.com/photo-1596832323822-b6b383a0967b?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
             latitude = 50.9,
             longitude = 6.9,
             amountOfSpots = 150,
             openTime = "00:00",
-            closeTime = "23:59"
+            closeTime = "23:59",
+            isInDiscover = true
         )
     )
     var cardList by remember { mutableStateOf(startCards) }
 
     ParkQuickTheme {
-        DatabaseScreenContent(
+        DiscoverScreenContent(
             cards = cardList,
             onAddCardClick = {
                 val newFakeCard = ParkingCard(
@@ -287,7 +290,8 @@ fun DatabaseScreenPreviewPopulated() {
                     longitude = 6.0,
                     amountOfSpots = 10,
                     openTime = "08:00",
-                    closeTime = "18:00"
+                    closeTime = "18:00",
+                    isInDiscover = true
                 )
                 // Fügt die neue Karte zur Liste hinzu, woraufhin die UI sich neu zeichnet
                 cardList = cardList + newFakeCard
