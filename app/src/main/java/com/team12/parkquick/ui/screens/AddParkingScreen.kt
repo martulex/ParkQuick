@@ -180,7 +180,10 @@ fun AddParkingContent(
                         modifier = Modifier.weight(1f)
                     )
                     Button(
-                        onClick = { showMapPicker = false },
+                        onClick = { 
+                            isLocationPicked = true
+                            showMapPicker = false 
+                        },
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(16.dp)
