@@ -61,14 +61,21 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.ContextCompat
 import androidx.compose.runtime.LaunchedEffect
+import android.content.Context
+import android.net.Uri
+import androidx.compose.foundation.Image
+import androidx.compose.ui.layout.ContentScale
+import androidx.core.content.FileProvider
+import coil.compose.rememberAsyncImagePainter
+import java.io.File
 
 
 @Composable
 fun AddParkingScreen(onNavigateBack : () -> Unit, viewModel: ParkingViewModel) {
     AddParkingContent(
         onNavigateBack = onNavigateBack,
-        onSaveParking = { selectedMinutes, name, notes, lat, lng ->
-            viewModel.addNewParking(selectedMinutes, name, notes, lat, lng)
+        onSaveParking = { selectedMinutes, name, notes, lat, lng, image ->
+            viewModel.addNewParking(selectedMinutes, name, notes, lat, lng, image)
             onNavigateBack()
         }
     )
@@ -78,13 +85,23 @@ fun AddParkingScreen(onNavigateBack : () -> Unit, viewModel: ParkingViewModel) {
 @Composable
 fun AddParkingContent(
     onNavigateBack: () -> Unit,
-    onSaveParking: (Long, String, String?, Double, Double) -> Unit
+    onSaveParking: (Long, String, String?, Double, Double, String) -> Unit
 ) {
     val context = LocalContext.current
     var description by remember { mutableStateOf("") }
     var selectedMinutes by remember { mutableStateOf(60L) }
     var name by remember { mutableStateOf("") }
     var isCustomSelected by remember { mutableStateOf(false) }
+    var photoUri by remember { mutableStateOf<Uri?>(null) }
+    var tempPhotoUri by remember { mutableStateOf<Uri?>(null) }
+
+    val cameraLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.TakePicture()
+    ) { success ->
+        if (success) {
+            photoUri = tempPhotoUri
+        }
+    }
 
     // GPS States
     var latitude by remember { mutableStateOf(50.9375) } // Default Köln
@@ -180,9 +197,9 @@ fun AddParkingContent(
                         modifier = Modifier.weight(1f)
                     )
                     Button(
-                        onClick = { 
+                        onClick = {
                             isLocationPicked = true
-                            showMapPicker = false 
+                            showMapPicker = false
                         },
                         modifier = Modifier
                             .fillMaxWidth()
@@ -236,7 +253,7 @@ fun AddParkingContent(
                     lng = longitude,
                     modifier = Modifier.fillMaxSize()
                 )
-                
+
                 // Button to change location
                 IconButton(
                     onClick = { checkLocationPermissionAndOpenMap() },
@@ -283,20 +300,36 @@ fun AddParkingContent(
             }
         }
 
-        // Photo Sektion
+        // Photo Sektion updated
         Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
             Text(text = "Photo", style = MaterialTheme.typography.titleMedium)
 
+            photoUri?.let { uri ->
+                Image(
+                    painter = rememberAsyncImagePainter(uri),
+                    contentDescription = "Parking photo",
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(180.dp)
+                        .clip(RoundedCornerShape(12.dp)),
+                    contentScale = ContentScale.Crop
+                )
+            }
+
             OutlinedButton(
-                onClick = { /* Open Camera */ },
+                onClick = {
+                    val uri = createImageUri(context)
+                    tempPhotoUri = uri
+                    cameraLauncher.launch(uri)
+                },
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Icon(Icons.Default.PhotoCamera, contentDescription = null)
                 Spacer(Modifier.width(8.dp))
                 Text("Take Photo")
             }
-
         }
+
 
         OutlinedTextField(
             value = name,
@@ -318,11 +351,23 @@ fun AddParkingContent(
         // Bestätigen
         val isFormValid = name.isNotBlank() && isLocationPicked
         Button(
-            onClick = { onSaveParking(selectedMinutes, name, description, latitude, longitude) },
+            onClick = { onSaveParking(selectedMinutes, name, description, latitude, longitude, photoUri?.toString() ?: "") },
             modifier = Modifier.fillMaxWidth(),
             enabled = isFormValid
         ) {
             Text("Save Parking Spot")
         }
     }
+}
+private fun createImageUri(context: Context): Uri {
+    val imageFile = File(
+        context.filesDir,
+        "parking_photo_${System.currentTimeMillis()}.jpg"
+    )
+
+    return FileProvider.getUriForFile(
+        context,
+        "${context.packageName}.fileprovider",
+        imageFile
+    )
 }
