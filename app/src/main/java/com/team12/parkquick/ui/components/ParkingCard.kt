@@ -27,6 +27,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.team12.parkquick.database.ParkingCard
+import com.team12.parkquick.ui.components.StaticMapPreview
 import kotlinx.coroutines.delay
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -67,22 +68,14 @@ fun ParkingCard(
 
             Spacer(modifier = Modifier.height(8.dp))
 
-            // Placeholder Map / Image
-            Box(
+            // Map Preview
+            StaticMapPreview(
+                lat = parking.latitude,
+                lng = parking.longitude,
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(140.dp)
-                    .background(
-                        MaterialTheme.colorScheme.primaryContainer,
-                        MaterialTheme.shapes.small
-                    ),
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(
-                    imageVector = Icons.Default.LocationOn,
-                    contentDescription = "Standort"
-                )
-            }
+            )
 
             Row(
                 modifier = Modifier

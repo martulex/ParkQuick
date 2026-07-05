@@ -16,15 +16,18 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.team12.parkquick.database.ParkingCard
 import com.team12.parkquick.ui.components.ParkingCard
 import com.team12.parkquick.ui.theme.ParkQuickTheme
+import com.team12.parkquick.utilities.LocationUtils
 import java.time.LocalDateTime
 
 @Composable
 fun HomeScreen(onNavigateToAddParking: () -> Unit, parkings: List<ParkingCard>, onCardClick: (String) -> Unit) {
+    val context = LocalContext.current
 
     if(parkings.isEmpty()) {
         Column(
@@ -55,7 +58,7 @@ fun HomeScreen(onNavigateToAddParking: () -> Unit, parkings: List<ParkingCard>, 
                 ParkingCard(
                     parking = parking,
                     onRouteClick = {
-                        // später Navigation / Maps
+                        LocationUtils.openNavigation(context, parking.latitude, parking.longitude)
                     },
                     onCardClick = {onCardClick(parking.id)},
                 )

@@ -19,6 +19,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.team12.parkquick.database.ParkingCard
+import com.team12.parkquick.ui.components.StaticMapPreview
 import com.team12.parkquick.ui.theme.ParkQuickTheme
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -79,19 +80,14 @@ fun ParkingHistoryCard(item: ParkingCard, onClick: () -> Unit) { // 1. Auf Parki
             modifier = Modifier.padding(16.dp)
         ) {
 
-            Box(
+            // Map Preview
+            StaticMapPreview(
+                lat = item.latitude,
+                lng = item.longitude,
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(150.dp)
-                    .background(Color(0xFFDDEAF6), RoundedCornerShape(12.dp)),
-                contentAlignment = Alignment.Center
-            ) {
-                Text(
-                    text = "Map Preview",
-                    fontSize = 18.sp,
-                    color = Color.DarkGray
-                )
-            }
+            )
 
             Spacer(modifier = Modifier.height(12.dp))
 
