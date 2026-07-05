@@ -89,6 +89,7 @@ fun ParkQuickApp(
             activeParkings.find { it.id == id } ?: historyParkings.find { it.id == id }
         },
         onSaveParking = { minutes, name, notes -> parkingViewModel.addNewParking(minutes, name, notes) },
+        onDeleteParking = { parkingViewModel.deleteParking(it) },
         isDarkModeEnabled = settings.isDarkModeEnabled,
         onToggleDarkMode = { usersettingsViewModel.toggleDarkMode() }
     )
@@ -101,6 +102,7 @@ fun ParkQuickAppContent(
     historyParkings: List<ParkingCard>,
     onGetParkingById: (String) -> ParkingCard?,
     onSaveParking: (Long, String, String?) -> Unit,
+    onDeleteParking: (ParkingCard) -> Unit,
     isDarkModeEnabled: Boolean,
     onToggleDarkMode: () -> Unit
 ) {
@@ -127,7 +129,15 @@ fun ParkQuickAppContent(
             composable<ParkingDetailRoute> { backStackEntry ->
                 val route: ParkingDetailRoute = backStackEntry.toRoute()
                 val parkingObj = onGetParkingById(route.parkingId)
-                ParkingDetailContent(parkingObj)
+                ParkingDetailContent(
+                    parkingObj = parkingObj,
+                    onDeleteClick = {
+                        parkingObj?.let {
+                            onDeleteParking(it)
+                            navController.popBackStack()
+                        }
+                    }
+                )
             }
             composable<AddParkingRoute> {
                 AddParkingContent(
@@ -254,6 +264,7 @@ fun ParkQuickAppPreview() {
             historyParkings = emptyList(),
             onGetParkingById = { id -> sampleParkings.find { it.id == id } },
             onSaveParking = { _, _, _ -> },
+            onDeleteParking = {},
             isDarkModeEnabled = false,
             onToggleDarkMode = {}
         )
