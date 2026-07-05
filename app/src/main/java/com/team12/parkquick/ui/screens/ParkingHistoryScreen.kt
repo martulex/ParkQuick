@@ -8,6 +8,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -22,23 +23,35 @@ import com.team12.parkquick.ui.theme.ParkQuickTheme
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
-
 @Composable
 fun ParkingHistoryScreen(historyList: List<ParkingCard>, onCardClick: (String) -> Unit) {
 
-    LazyColumn(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(horizontal = 16.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp),
-        contentPadding = PaddingValues(top = 16.dp, bottom = 16.dp)
-    ) {
+    Column(modifier = Modifier.fillMaxSize()) {
 
-        items(historyList) { item ->
-            ParkingHistoryCard(
-                item = item,
-                onClick = { onCardClick(item.id) }
-            )
+        Text(
+            text = "Parking History.",
+            style = MaterialTheme.typography.headlineLarge.copy(
+                fontWeight = FontWeight.ExtraBold
+            ),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp, vertical = 16.dp)
+        )
+
+        // Deine bisherige Liste
+        LazyColumn(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(horizontal = 16.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp),
+            contentPadding = PaddingValues(top = 0.dp, bottom = 16.dp)
+        ) {
+            items(historyList) { item ->
+                ParkingHistoryCard(
+                    item = item,
+                    onClick = { onCardClick(item.id) }
+                )
+            }
         }
     }
 }

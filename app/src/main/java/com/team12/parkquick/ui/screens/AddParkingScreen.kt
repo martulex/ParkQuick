@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -104,8 +105,8 @@ fun AddParkingContent(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(16.dp)
-            .verticalScroll(rememberScrollState()),
+            .verticalScroll(rememberScrollState())
+            .padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(20.dp)
     ) {
         // Location: Karte wird direkt als Vorschau angezeigt
@@ -192,7 +193,7 @@ fun AddParkingContent(
         OutlinedTextField(
             value = description,
             onValueChange = { description = it },
-            label = { Text("Notes (e.g. Floor, Pillar number)") },
+            label = { Text("Description (e.g. Location, Space ...)") },
             modifier = Modifier.fillMaxWidth(),
             minLines = 3
         )

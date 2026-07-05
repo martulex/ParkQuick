@@ -30,6 +30,9 @@ class ParkingViewModel(application: Application) : AndroidViewModel(application)
     val historyParkings = allParkings.map { list -> list.filter { !it.isInParking } }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
+    val discoverParkings = allParkings.map { list -> list.filter { it.isInDiscover } }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
     /**
      * Creates and adds a new parking entry to the repository.
      *

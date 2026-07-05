@@ -32,11 +32,13 @@ class DatabaseViewModel(application: Application) : AndroidViewModel(application
                 name = "Test-Parkplatz ${System.currentTimeMillis().toString().takeLast(3)}",
                 price = 2.50f,
                 description = "Ein super Parkplatz direkt im Zentrum.",
-                image = "", // Leer für den Anfang
+                image = "https://images.unsplash.com/photo-1596832323822-b6b383a0967b?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D", // Leer für den Anfang
                 latitude = 51.0,
                 longitude = 7.0,
                 openTime = "08:00",
-                closeTime = "18:00"
+                closeTime = "18:00",
+                isInDiscover = true,
+                isInParking = false,
             )
             repository.insert(neueKarte)
         }

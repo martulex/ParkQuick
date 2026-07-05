@@ -24,6 +24,7 @@ data class ParkingCard (
     val parkingTimeStart : Long = System.currentTimeMillis(),
     val parkingTimeEnd : Long = 0L,
     val isInParking : Boolean = true,
+    val isInDiscover : Boolean = false,
 
 
     // Standort
