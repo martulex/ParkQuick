@@ -14,16 +14,16 @@ object TimeFormatter {
     fun formatRemainingTime(parkTimeMillis: Long, pickupTimeMillis: Long): String {
         val durationMillis = pickupTimeMillis - parkTimeMillis
 
-        if (durationMillis <= 0) return "0 Minuten"
+        if (durationMillis <= 0) return "0 Minutes"
 
         val days = durationMillis / (1000 * 60 * 60 * 24)
         val hours = (durationMillis / (1000 * 60 * 60)) % 24
         val minutes = (durationMillis / (1000 * 60)) % 60
 
         return when {
-            days > 0 -> "$days Tage $hours Stunden"
-            hours > 0 -> "$hours Stunden $minutes Minuten"
-            else -> "$minutes Minuten"
+            days > 0 -> "$days Days $hours Hours"
+            hours > 0 -> "$hours Hours $minutes Minutes"
+            else -> "$minutes Minutes"
         }
     }
 
@@ -32,7 +32,7 @@ object TimeFormatter {
         val end = fullFormatter.format(Date(parking.parkingTimeEnd))
 
         return if (isActive) {
-            "Geparkt seit: \n$start"
+            "Parked since: \n$start"
         } else {
             "$start – $end"
         }

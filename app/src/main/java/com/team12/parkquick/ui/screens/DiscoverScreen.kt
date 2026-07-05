@@ -195,7 +195,7 @@ fun ParkingCardItem(
                     overflow = TextOverflow.Ellipsis
                 )
                 Text(
-                    text = "${card.price} € / Stunde",
+                    text = "${card.price} € / Hour",
                     style = MaterialTheme.typography.labelMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     fontWeight = FontWeight.Medium
@@ -210,13 +210,13 @@ fun ParkingCardItem(
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Icon(
                             imageVector = Icons.Default.Schedule,
-                            contentDescription = "Öffnungszeiten",
+                            contentDescription = "Opening hours",
                             modifier = Modifier.size(16.dp),
                             tint = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                         Spacer(modifier = Modifier.width(4.dp))
                         Text(
-                            text = "${card.openTime} bis ${card.closeTime}",
+                            text = "${card.openTime} to ${card.closeTime}",
                             style = MaterialTheme.typography.labelMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
@@ -226,7 +226,7 @@ fun ParkingCardItem(
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Icon(
                             imageVector = Icons.Default.LocationOn,
-                            contentDescription = "Entfernung",
+                            contentDescription = "Distance",
                             modifier = Modifier.size(16.dp),
                             tint = MaterialTheme.colorScheme.primary
                         )
@@ -264,7 +264,7 @@ fun DiscoverScreenPreviewPopulated() {
             id = UUID.randomUUID().toString(),
             name = "Parkhaus am Dom",
             price = 2.50f,
-            description = "Zentrales Parkhaus.",
+            description = "Central parking garage.",
             image = "https://images.unsplash.com/photo-1596832323822-b6b383a0967b?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
             latitude = 50.9,
             longitude = 6.9,
@@ -282,9 +282,9 @@ fun DiscoverScreenPreviewPopulated() {
             onAddCardClick = {
                 val newFakeCard = ParkingCard(
                     id = UUID.randomUUID().toString(),
-                    name = "Neuer Parkplatz ${cardList.size + 1}",
+                    name = "New Parking Spot ${cardList.size + 1}",
                     price = 1.50f,
-                    description = "Gerade in der Preview hinzugefügt!",
+                    description = "Just added in the preview!",
                     image = "",
                     latitude = 50.0,
                     longitude = 6.0,
