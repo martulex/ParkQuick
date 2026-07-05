@@ -8,8 +8,8 @@ import com.team12.parkquick.repository.ParkingRepository
 class ParkingAlarmReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context?, intent: Intent?) {
         val parkingId = intent?.getStringExtra("PARKING_ID")
-        if (parkingId != null) {
-            ParkingRepository.setParkingExpired(parkingId)
+        if (parkingId != null && context != null) {
+            ParkingRepository.setParkingExpired(context, parkingId)
         }
     }
 }
