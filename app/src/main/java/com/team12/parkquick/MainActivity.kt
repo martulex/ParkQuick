@@ -82,14 +82,12 @@ fun ParkQuickApp(
 
     val activeParkings by parkingViewModel.activeParkings.collectAsStateWithLifecycle(emptyList())
     val historyParkings by parkingViewModel.historyParkings.collectAsStateWithLifecycle(emptyList())
-    val discoverParkings by parkingViewModel.discoverParkings.collectAsStateWithLifecycle(emptyList())
     val settings by usersettingsViewModel.settingsState.collectAsStateWithLifecycle()
 
     ParkQuickAppContent(
         navController = navController,
         activeParkings = activeParkings,
         historyParkings = historyParkings,
-        discoverParkings = discoverParkings,
         onGetParkingById = { id ->
             // In-memory lookup from the current state
             activeParkings.find { it.id == id } ?: historyParkings.find { it.id == id }
@@ -109,7 +107,6 @@ fun ParkQuickAppContent(
     navController: NavHostController,
     activeParkings: List<ParkingCard>,
     historyParkings: List<ParkingCard>,
-    discoverParkings : List<ParkingCard>,
     onGetParkingById: (String) -> ParkingCard?,
     onSaveParking: (Long, String, String?, Double, Double, String) -> Unit,
     onDeleteParking: (ParkingCard) -> Unit,
@@ -187,8 +184,7 @@ fun ParkQuickAppContent(
                     viewModel = databaseViewModel,
                     onCardClick = { parkingId ->
                         navController.navigate(ParkingDetailRoute(parkingId = parkingId))
-                    },
-                    discoverParkings = discoverParkings
+                    }
                 )
             }
         }
@@ -303,8 +299,7 @@ fun ParkQuickAppPreview() {
             isDarkModeEnabled = false,
             notificationLeadTime = 10,
             onToggleDarkMode = {},
-            onNotificationLeadTimeChange = {},
-            discoverParkings = emptyList()
+            onNotificationLeadTimeChange = {}
         )
     }
 }

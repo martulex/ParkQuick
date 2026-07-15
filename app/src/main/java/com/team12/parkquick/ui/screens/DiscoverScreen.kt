@@ -40,11 +40,14 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Search
 
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+
 @Composable
-fun DiscoverScreen(discoverParkings : List<ParkingCard>,
-                   viewModel: DatabaseViewModel,
-                   onCardClick: (String) -> Unit
+fun DiscoverScreen(
+    viewModel: DatabaseViewModel,
+    onCardClick: (String) -> Unit
 ) {
+    val discoverParkings by viewModel.parkingCards.collectAsStateWithLifecycle()
 
     DiscoverScreenContent(
         cards = discoverParkings,
