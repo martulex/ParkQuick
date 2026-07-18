@@ -81,4 +81,11 @@ class ParkingViewModel(application: Application) : AndroidViewModel(application)
             repository.deleteParkingCard(card)
         }
     }
+
+    fun endParking(card: ParkingCard) {
+        viewModelScope.launch {
+            ParkingRepository.cancelParkingAlarm(getApplication(), card.id)
+            repository.updateParkingCard(card.copy(isInParking = false, parkingTimeEnd = System.currentTimeMillis()))
+        }
+    }
 }

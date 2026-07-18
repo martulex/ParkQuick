@@ -28,6 +28,12 @@ class UserSettingsViewModel (application: Application) : AndroidViewModel(applic
         }
     }
 
+    fun setNotificationLeadTime(minutes: Int) {
+        viewModelScope.launch {
+            userSettingsRepository.setNotificationLeadTime(minutes)
+        }
+    }
+
 
 
 

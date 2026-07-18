@@ -7,4 +7,5 @@ package com.team12.parkquick.settings
 */
 data class UserSettings (
     val isDarkModeEnabled: Boolean,
+    val notificationLeadTime: Int = 10
 )

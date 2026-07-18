@@ -96,8 +96,11 @@ fun ParkQuickApp(
         },
         onSaveParking = { minutes, name, notes, lat, lng, image -> parkingViewModel.addNewParking(minutes, name, notes, lat, lng, image) },
         onDeleteParking = { parkingViewModel.deleteParking(it) },
+        onFinishParking = { parkingViewModel.endParking(it) },
         isDarkModeEnabled = settings.isDarkModeEnabled,
-        onToggleDarkMode = { usersettingsViewModel.toggleDarkMode() }
+        notificationLeadTime = settings.notificationLeadTime,
+        onToggleDarkMode = { usersettingsViewModel.toggleDarkMode() },
+        onNotificationLeadTimeChange = { usersettingsViewModel.setNotificationLeadTime(it) }
     )
 }
 
@@ -110,8 +113,11 @@ fun ParkQuickAppContent(
     onGetParkingById: (String) -> ParkingCard?,
     onSaveParking: (Long, String, String?, Double, Double, String) -> Unit,
     onDeleteParking: (ParkingCard) -> Unit,
+    onFinishParking: (ParkingCard) -> Unit,
     isDarkModeEnabled: Boolean,
-    onToggleDarkMode: () -> Unit
+    notificationLeadTime: Int,
+    onToggleDarkMode: () -> Unit,
+    onNotificationLeadTimeChange: (Int) -> Unit
 ) {
     Scaffold(
         topBar = {
@@ -143,6 +149,12 @@ fun ParkQuickAppContent(
                             onDeleteParking(it)
                             navController.popBackStack()
                         }
+                    },
+                    onFinishParkingClick = {
+                        parkingObj?.let {
+                            onFinishParking(it)
+                            navController.popBackStack()
+                        }
                     }
                 )
             }
@@ -164,7 +176,9 @@ fun ParkQuickAppContent(
             composable<SettingsRoute> {
                 SettingsScreenContent(
                     isDarkModeActive = isDarkModeEnabled,
-                    onToggleDarkMode = onToggleDarkMode
+                    notificationLeadTime = notificationLeadTime,
+                    onToggleDarkMode = onToggleDarkMode,
+                    onNotificationLeadTimeChange = onNotificationLeadTimeChange
                 )
             }
             composable<DiscoverRoute> {
@@ -285,8 +299,11 @@ fun ParkQuickAppPreview() {
             onGetParkingById = { id -> sampleParkings.find { it.id == id } },
             onSaveParking = { _, _, _, _, _, _ -> },
             onDeleteParking = {},
+            onFinishParking = {},
             isDarkModeEnabled = false,
+            notificationLeadTime = 10,
             onToggleDarkMode = {},
+            onNotificationLeadTimeChange = {},
             discoverParkings = emptyList()
         )
     }

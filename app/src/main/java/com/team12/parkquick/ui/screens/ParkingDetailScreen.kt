@@ -50,6 +50,12 @@ fun ParkingDetailScreen(
                     viewModel.deleteParking(it)
                     onNavigateBack()
                 }
+            },
+            onFinishParkingClick = {
+                parkingObj?.let {
+                    viewModel.endParking(it)
+                    onNavigateBack()
+                }
             }
         )
     }
@@ -58,7 +64,8 @@ fun ParkingDetailScreen(
 @Composable
 fun ParkingDetailContent(
     parkingObj: ParkingCard?,
-    onDeleteClick: () -> Unit = {}
+    onDeleteClick: () -> Unit = {},
+    onFinishParkingClick: () -> Unit = {}
 ) {
     if (parkingObj == null) {
         Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
@@ -124,6 +131,16 @@ fun ParkingDetailContent(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(16.dp)
         ) {
+            if (parkingObj.isInParking) {
+                Button(
+                    onClick = onFinishParkingClick,
+                    modifier = Modifier.weight(1f),
+                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
+                ) {
+                    Text("Finish Parking")
+                }
+            }
+
             Button(
                 onClick = { 
                     LocationUtils.openNavigation(context, parkingObj.latitude, parkingObj.longitude)

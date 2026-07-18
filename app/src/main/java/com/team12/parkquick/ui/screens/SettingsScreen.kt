@@ -21,7 +21,9 @@ fun SettingsScreen( viewModel: UserSettingsViewModel) {
     SettingsScreenContent(
         modifier = Modifier,
         isDarkModeActive = settings.isDarkModeEnabled,
-        onToggleDarkMode = { viewModel.toggleDarkMode() }
+        notificationLeadTime = settings.notificationLeadTime,
+        onToggleDarkMode = { viewModel.toggleDarkMode() },
+        onNotificationLeadTimeChange = { viewModel.setNotificationLeadTime(it) }
     )
 }
 
@@ -29,7 +31,9 @@ fun SettingsScreen( viewModel: UserSettingsViewModel) {
 @Composable
 fun SettingsScreenContent(
     isDarkModeActive: Boolean,
+    notificationLeadTime: Int,
     onToggleDarkMode: () -> Unit, // Eine Funktion, die aufgerufen wird, wenn man klickt
+    onNotificationLeadTimeChange: (Int) -> Unit,
     modifier: Modifier = Modifier
 ) {
     Column(
@@ -47,11 +51,11 @@ fun SettingsScreenContent(
         ) {
             Column {
                 Text(
-                    text = "Dunkelmodus",
+                    text = "Dark Mode",
                     style = MaterialTheme.typography.bodyLarge
                 )
                 Text(
-                    text = if (isDarkModeActive) "Dunkles Design ist aktiv" else "Helles Design ist aktiv",
+                    text = if (isDarkModeActive) "Dark design is active" else "Light design is active",
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -60,6 +64,41 @@ fun SettingsScreenContent(
             Switch(
                 checked = isDarkModeActive,
                 onCheckedChange = { onToggleDarkMode() }
+            )
+        }
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(vertical = 8.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = "Notification Lead Time",
+                    style = MaterialTheme.typography.bodyLarge
+                )
+                Text(
+                    text = "Minutes before the timer expires",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+
+            OutlinedTextField(
+                value = notificationLeadTime.toString(),
+                onValueChange = {
+                    val newValue = it.toIntOrNull()
+                    if (newValue != null) {
+                        onNotificationLeadTimeChange(newValue)
+                    }
+                },
+                modifier = Modifier.width(80.dp),
+                singleLine = true,
+                textStyle = MaterialTheme.typography.bodyMedium
             )
         }
     }
@@ -73,7 +112,9 @@ fun SettingsScreenPreviewLight() {
     ParkQuickTheme {
         SettingsScreenContent(
             isDarkModeActive = false,
-            onToggleDarkMode = {}
+            notificationLeadTime = 10,
+            onToggleDarkMode = {},
+            onNotificationLeadTimeChange = {}
         )
     }
 }
@@ -84,7 +125,9 @@ fun SettingsScreenPreviewDark() {
     ParkQuickTheme {
         SettingsScreenContent(
             isDarkModeActive = true,
-            onToggleDarkMode = {}
+            notificationLeadTime = 15,
+            onToggleDarkMode = {},
+            onNotificationLeadTimeChange = {}
         )
     }
 }

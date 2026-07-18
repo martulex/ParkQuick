@@ -109,10 +109,10 @@ fun ParkingCard(
             ) {
 
                 // Entweder den Live-Timer anzeigen oder einen netten Text für die Historie
-                val historyText = "Beendet am ${SimpleDateFormat("dd.MM.", Locale.getDefault()).format(Date(parking.parkingTimeEnd))}"
+                val historyText = "Finished on ${SimpleDateFormat("dd.MM.", Locale.getDefault()).format(Date(parking.parkingTimeEnd))}"
 
                 Text(
-                    text = if (parking.isInParking) "Verbleibend: $timeLeftString" else historyText,
+                    text = if (parking.isInParking) "Remaining: $timeLeftString" else historyText,
                     style = MaterialTheme.typography.bodyLarge,
                     color = MaterialTheme.colorScheme.primary
                 )
@@ -133,7 +133,7 @@ fun calculateTimeLeft(pickupTimeMillis: Long): String {
     val remainingMillis = pickupTimeMillis - currentTime
 
     if (remainingMillis <= 0) {
-        return "Abgelaufen!"
+        return "Expired!"
     }
 
     // Mathematik, um Millisekunden aufzubrechen
@@ -144,7 +144,7 @@ fun calculateTimeLeft(pickupTimeMillis: Long): String {
     val seconds = totalSeconds % 60
 
     return if (days > 0) {
-        "${days}T ${hours}S ${minutes}M"
+        "${days}d ${hours}h ${minutes}m"
     } else {
         String.format(Locale.getDefault(), "%02d:%02d:%02d", hours, minutes, seconds)
     }
