@@ -91,8 +91,8 @@ fun ParkQuickApp(
         historyParkings = historyParkings,
         allAvailableParkings = allAvailableParkings,
         onGetParkingById = { id ->
-            // In-memory lookup from the current state
-            activeParkings.find { it.id == id } ?: historyParkings.find { it.id == id }
+            // Sucht jetzt in allen verfügbaren Parkplätzen (Lokal + Firebase)
+            allAvailableParkings.find { it.id == id }
         },
         onSaveParking = { minutes, name, notes, lat, lng, image, price, spots, isPublic ->
             parkingViewModel.addNewParking(minutes, name, notes, lat, lng, image, price, spots, isPublic)
@@ -144,6 +144,7 @@ fun ParkQuickAppContent(
             composable<ParkingDetailRoute> { backStackEntry ->
                 val route: ParkingDetailRoute = backStackEntry.toRoute()
                 val parkingObj = onGetParkingById(route.parkingId)
+
                 ParkingDetailContent(
                     parkingObj = parkingObj,
                     onDeleteClick = {
@@ -156,6 +157,25 @@ fun ParkQuickAppContent(
                         parkingObj?.let {
                             onFinishParking(it)
                             navController.popBackStack()
+                        }
+                    },
+                    onStartParkingClick = { minutes ->
+                        parkingObj?.let {
+                            onSaveParking(
+                                minutes,
+                                it.name,
+                                it.description,
+                                it.latitude,
+                                it.longitude,
+                                it.image,
+                                it.price,
+                                it.amountOfSpots,
+                                false
+                            )
+                            navController.navigate(HomeRoute) {
+                                popUpTo(navController.graph.startDestinationId)
+                                launchSingleTop = true
+                            }
                         }
                     }
                 )

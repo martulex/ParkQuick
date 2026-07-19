@@ -294,7 +294,8 @@ fun DiscoverScreenPreviewPopulated() {
                     amountOfSpots = 10,
                     openTime = "08:00",
                     closeTime = "18:00",
-                    isInDiscover = true
+                    isInDiscover = true,
+                    isInParking = false
                 )
                 // Fügt die neue Karte zur Liste hinzu, woraufhin die UI sich neu zeichnet
                 cardList = cardList + newFakeCard

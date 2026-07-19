@@ -114,7 +114,13 @@ class ParkingViewModel(application: Application) : AndroidViewModel(application)
     }
 
     suspend fun getParkingByID(id: String): ParkingCard? {
-        return repository.getParkingCardById(id)
+
+        // Zuerst in der lokalen Datenbank (Room) suchen
+        val localSpot = repository.getParkingCardById(id)
+        if (localSpot != null) return localSpot
+
+        // Wenn lokal nicht gefunden, in den Firebase-Daten suchen
+        return _remoteParkingCards.value.find { it.id == id }
     }
 
     fun deleteParking(card: ParkingCard) {

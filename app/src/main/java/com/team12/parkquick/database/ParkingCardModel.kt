@@ -23,7 +23,7 @@ data class ParkingCard (
     var closeTime : String = "23:59",
     val parkingTimeStart : Long = System.currentTimeMillis(),
     val parkingTimeEnd : Long = 0L,
-    val isInParking : Boolean = true,
+    val isInParking : Boolean = false,
     val isInDiscover : Boolean = false,
 
     // Standort
