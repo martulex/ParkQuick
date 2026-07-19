@@ -106,13 +106,12 @@ fun HomeScreen(
 
             Spacer(modifier = Modifier.height(32.dp))
 
-            // ECHTE DATEN: My Spots (Selbst erstellte Spots, Duplikate nach Name gefiltert)
             if (mySpots.isNotEmpty()) {
                 Box(modifier = Modifier.padding(horizontal = 16.dp)) {
                     HistoryRow(
                         title = "My Spots",
                         history = mySpots
-                            .distinctBy { it.name } // Zeigt jeden Namen nur 1x an
+                            .distinctBy { it.name }
                             .sortedByDescending { it.parkingTimeEnd }
                             .take(5),
                         onCardClick = onCardClick
@@ -121,7 +120,6 @@ fun HomeScreen(
                 Spacer(modifier = Modifier.height(32.dp))
             }
 
-            // ECHTE DATEN: Last Parking Spots (Chronologische History)
             if (historyParkings.isNotEmpty()) {
                 Box(modifier = Modifier.padding(horizontal = 16.dp)) {
                     HistoryRow(
@@ -153,7 +151,6 @@ fun HomeScreen(
     }
 }
 
-// ECHTE DATEN ROW (wird jetzt 2x verwendet für "My Spots" und "Last Spots")
 @Composable
 fun HistoryRow(title: String, history: List<ParkingCard>, onCardClick: (String) -> Unit) {
     Column(modifier = Modifier.fillMaxWidth()) {
@@ -174,7 +171,6 @@ fun HistoryRow(title: String, history: List<ParkingCard>, onCardClick: (String) 
     }
 }
 
-// Design optimiert auf 240x160 dp
 @Composable
 fun HistoryParkingCard(
     card: ParkingCard,
