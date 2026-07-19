@@ -36,6 +36,8 @@ fun SettingsScreenContent(
     onNotificationLeadTimeChange: (Int) -> Unit,
     modifier: Modifier = Modifier
 ) {
+    var leadTimeText by remember(notificationLeadTime) { mutableStateOf(notificationLeadTime.toString()) }
+
     Column(
         modifier = modifier
             .fillMaxSize()
@@ -89,10 +91,10 @@ fun SettingsScreenContent(
             }
 
             OutlinedTextField(
-                value = notificationLeadTime.toString(),
+                value = leadTimeText,
                 onValueChange = {
-                    val newValue = it.toIntOrNull()
-                    if (newValue != null) {
+                    leadTimeText = it
+                    it.toIntOrNull()?.let { newValue ->
                         onNotificationLeadTimeChange(newValue)
                     }
                 },

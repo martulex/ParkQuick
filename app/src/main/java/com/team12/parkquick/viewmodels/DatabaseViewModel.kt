@@ -9,10 +9,7 @@ import com.team12.parkquick.database.RoomParkingCardRepository
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.ktx.toObjects
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 
@@ -24,22 +21,9 @@ class DatabaseViewModel(application: Application) : AndroidViewModel(application
     private val repository = RoomParkingCardRepository(dao)
     private val firestore = FirebaseFirestore.getInstance()
 
-    // Lokale Karten aus Room
-    private val localParkingCards = repository.getAllParkingCards()
-
     // Remote Karten aus Firebase
     private val _remoteParkingCards = MutableStateFlow<List<ParkingCard>>(emptyList())
-    val remoteParkingCards: StateFlow<List<ParkingCard>> = _remoteParkingCards
-
-    // Kombinierte Karten für Discover (Lokal + Remote)
-    val parkingCards = combine(localParkingCards, _remoteParkingCards) { local, remote ->
-        // Duplikate vermeiden (id-basiert)
-        (local + remote).distinctBy { it.id }
-    }.stateIn(
-        scope = viewModelScope,
-        started = SharingStarted.Companion.WhileSubscribed(5000),
-        initialValue = emptyList()
-    )
+    val parkingCards: StateFlow<List<ParkingCard>> = _remoteParkingCards
 
     init {
         fetchRemoteParkings()

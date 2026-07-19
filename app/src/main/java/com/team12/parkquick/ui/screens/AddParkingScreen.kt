@@ -81,8 +81,8 @@ fun AddParkingContent(
     var name by remember { mutableStateOf("") }
     var description by remember { mutableStateOf("") }
     var selectedMinutes by remember { mutableStateOf(60L) }
-    var price by remember { mutableStateOf(0f) }
-    var amountOfSpots by remember { mutableStateOf(1) }
+    var priceText by remember { mutableStateOf("") }
+    var amountOfSpotsText by remember { mutableStateOf("1") }
     var isSharedWithCommunity by remember { mutableStateOf(false) }
 
     var isCustomTimeSelected by remember { mutableStateOf(false) }
@@ -153,8 +153,8 @@ fun AddParkingContent(
                         // Pre-fill logic only if spot selected
                         name = spot.name
                         description = spot.description
-                        price = spot.price
-                        amountOfSpots = spot.amountOfSpots
+                        priceText = spot.price.toString()
+                        amountOfSpotsText = spot.amountOfSpots.toString()
                         latitude = spot.latitude
                         longitude = spot.longitude
                         isSharedWithCommunity = spot.isSharedWithCommunity
@@ -216,15 +216,15 @@ fun AddParkingContent(
             // Price & Spots
             Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
                 OutlinedTextField(
-                    value = if (price == 0f) "" else price.toString(),
-                    onValueChange = { price = it.toFloatOrNull() ?: 0f },
+                    value = priceText,
+                    onValueChange = { if (it.isEmpty() || it.toFloatOrNull() != null || it == ".") priceText = it },
                     label = { Text("Price (€/h)") },
                     modifier = Modifier.weight(1f),
                     readOnly = isFromExisting
                 )
                 OutlinedTextField(
-                    value = amountOfSpots.toString(),
-                    onValueChange = { amountOfSpots = it.toIntOrNull() ?: 1 },
+                    value = amountOfSpotsText,
+                    onValueChange = { if (it.isEmpty() || it.all { char -> char.isDigit() }) amountOfSpotsText = it },
                     label = { Text("Spots") },
                     modifier = Modifier.weight(1f),
                     readOnly = isFromExisting
@@ -361,7 +361,17 @@ fun AddParkingContent(
                 onClick = {
                     // If it's from existing community, we save it ONLY to Room (isPublic=false in addNewParking call)
                     val finalIsPublic = if (isFromExisting) false else isSharedWithCommunity
-                    onSaveParking(selectedMinutes, name, description, latitude, longitude, photoUri?.toString() ?: "", price, amountOfSpots, finalIsPublic)
+                    onSaveParking(
+                        selectedMinutes,
+                        name,
+                        description,
+                        latitude,
+                        longitude,
+                        photoUri?.toString() ?: "",
+                        priceText.toFloatOrNull() ?: 0f,
+                        amountOfSpotsText.toIntOrNull() ?: 1,
+                        finalIsPublic
+                    )
                 },
                 modifier = Modifier.fillMaxWidth().padding(bottom = 32.dp),
                 enabled = name.isNotBlank()

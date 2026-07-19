@@ -14,6 +14,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.team12.parkquick.database.ParkingCard
+import com.team12.parkquick.ui.components.StaticMapPreview
 import com.team12.parkquick.ui.theme.ParkQuickTheme
 import com.team12.parkquick.viewmodels.DatabaseViewModel
 import java.util.UUID
@@ -172,17 +173,25 @@ fun ParkingCardItem(
         ) {
 
             // Das Bild
-            AsyncImage(
-                model = ImageRequest.Builder(LocalContext.current)
-                    .data(card.image.ifEmpty { null })
-                    .crossfade(true)
-                    .build(),
-                placeholder = painterResource(id = android.R.drawable.ic_menu_gallery),
-                error = painterResource(id = android.R.drawable.ic_menu_gallery),
-                contentDescription = "Preview",
-                contentScale = ContentScale.Crop,
-                modifier = Modifier.size(80.dp).clip(RoundedCornerShape(8.dp))
-            )
+            if (card.image.isNotBlank()) {
+                AsyncImage(
+                    model = ImageRequest.Builder(LocalContext.current)
+                        .data(card.image)
+                        .crossfade(true)
+                        .build(),
+                    placeholder = painterResource(id = android.R.drawable.ic_menu_gallery),
+                    error = painterResource(id = android.R.drawable.ic_menu_gallery),
+                    contentDescription = "Preview",
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier.size(80.dp).clip(RoundedCornerShape(8.dp))
+                )
+            } else {
+                StaticMapPreview(
+                    lat = card.latitude,
+                    lng = card.longitude,
+                    modifier = Modifier.size(80.dp).clip(RoundedCornerShape(8.dp))
+                )
+            }
 
             Spacer(modifier = Modifier.width(16.dp))
 

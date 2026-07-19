@@ -1,16 +1,21 @@
 package com.team12.parkquick.ui.components
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.layout.ContentScale
+import coil.compose.rememberAsyncImagePainter
 import com.google.android.gms.maps.CameraUpdateFactory
+import com.google.android.gms.maps.GoogleMapOptions
 import com.google.android.gms.maps.model.BitmapDescriptorFactory
 import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.LatLng
 import com.google.maps.android.compose.*
+import com.team12.parkquick.BuildConfig
 import com.team12.parkquick.database.ParkingCard
 
 /**
@@ -22,34 +27,17 @@ fun StaticMapPreview(
     lng: Double,
     modifier: Modifier = Modifier
 ) {
-    val position = remember(lat, lng) { LatLng(lat, lng) }
-    val cameraPositionState = rememberCameraPositionState {
-        this.position = CameraPosition.fromLatLngZoom(position, 15f)
-    }
-    val markerState = rememberMarkerState(position = position)
+    // We use the Google Static Maps API to load a PNG instead of a live Map component.
+    // This is much more performant in lists and avoids crashes during scrolling.
+    val mapUrl = "https://maps.googleapis.com/maps/api/staticmap?" +
+            "center=$lat,$lng&zoom=15&size=600x300&markers=color:red%7C$lat,$lng&key=${BuildConfig.MAPS_API_KEY}"
 
-    LaunchedEffect(position) {
-        cameraPositionState.position = CameraPosition.fromLatLngZoom(position, 15f)
-        markerState.position = position
-    }
-
-    Box(modifier = modifier) {
-        GoogleMap(
-            modifier = Modifier.fillMaxSize(),
-            cameraPositionState = cameraPositionState,
-            properties = MapProperties(isMyLocationEnabled = false),
-            uiSettings = MapUiSettings(
-                zoomControlsEnabled = false,
-                scrollGesturesEnabled = false,
-                zoomGesturesEnabled = false,
-                tiltGesturesEnabled = false,
-                rotationGesturesEnabled = false,
-                mapToolbarEnabled = false
-            )
-        ) {
-            Marker(state = markerState)
-        }
-    }
+    Image(
+        painter = rememberAsyncImagePainter(mapUrl),
+        contentDescription = "Map Preview",
+        modifier = modifier.fillMaxSize(),
+        contentScale = ContentScale.Crop
+    )
 }
 
 /**

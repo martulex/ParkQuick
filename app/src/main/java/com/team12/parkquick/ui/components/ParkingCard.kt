@@ -1,6 +1,7 @@
 package com.team12.parkquick.ui.components
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -97,6 +98,12 @@ fun ParkingCard(
                             .height(140.dp)
                     )
                 }
+                // Overlay to capture clicks, as the MapView consumes them
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .clickable { onCardClick() }
+                )
             }
 
 
