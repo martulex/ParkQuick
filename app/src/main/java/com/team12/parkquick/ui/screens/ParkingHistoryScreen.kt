@@ -47,7 +47,7 @@ fun ParkingHistoryScreen(historyList: List<ParkingCard>, onCardClick: (String) -
             verticalArrangement = Arrangement.spacedBy(16.dp),
             contentPadding = PaddingValues(top = 0.dp, bottom = 16.dp)
         ) {
-            items(historyList) { item ->
+            items(historyList, key = { it.id }) { item ->
                 ParkingHistoryCard(
                     item = item,
                     onClick = { onCardClick(item.id) }
