@@ -84,7 +84,7 @@ fun AddParkingContent(
     var price by remember { mutableStateOf(0f) }
     var amountOfSpots by remember { mutableStateOf(1) }
     var isSharedWithCommunity by remember { mutableStateOf(false) }
-    
+
     var isCustomTimeSelected by remember { mutableStateOf(false) }
     var photoUri by remember { mutableStateOf<Uri?>(null) }
     var tempPhotoUri by remember { mutableStateOf<Uri?>(null) }
@@ -148,7 +148,7 @@ fun AddParkingContent(
                 modifier = Modifier.fillMaxSize()
             )
             Button(
-                onClick = { 
+                onClick = {
                     selectedExistingSpot?.let { spot ->
                         // Pre-fill logic only if spot selected
                         name = spot.name
@@ -159,7 +159,7 @@ fun AddParkingContent(
                         longitude = spot.longitude
                         isSharedWithCommunity = spot.isSharedWithCommunity
                     }
-                    currentStep = AddParkingStep.FORM 
+                    currentStep = AddParkingStep.FORM
                 },
                 modifier = Modifier
                     .align(Alignment.BottomCenter)
@@ -171,7 +171,7 @@ fun AddParkingContent(
         }
     } else {
         val isFromExisting = selectedExistingSpot != null
-        
+
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -285,17 +285,24 @@ fun AddParkingContent(
                 }
             }
 
-            // Photo
-            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                Text(text = "Photo", style = MaterialTheme.typography.titleMedium)
-                photoUri?.let { uri ->
-                    Image(
-                        painter = rememberAsyncImagePainter(uri),
-                        contentDescription = null,
-                        modifier = Modifier.fillMaxWidth().height(180.dp).clip(RoundedCornerShape(12.dp)),
-                        contentScale = ContentScale.Crop
-                    )
-                }
+        // Photo Sektion updated
+        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            Text(text = "Photo", style = MaterialTheme.typography.titleMedium)
+
+            photoUri?.let { uri ->
+                Image(
+                    painter = rememberAsyncImagePainter(uri),
+                    contentDescription = "Parking photo",
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(180.dp)
+                        .clip(RoundedCornerShape(12.dp)),
+                    contentScale = ContentScale.Crop
+                )
+            }
+
+            if (photoUri == null) {
+
                 OutlinedButton(
                     onClick = {
                         val uri = createImageUri(context)
@@ -308,7 +315,37 @@ fun AddParkingContent(
                     Spacer(Modifier.width(8.dp))
                     Text("Take Photo")
                 }
+
+            } else {
+
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+
+                    OutlinedButton(
+                        onClick = {
+                            val uri = createImageUri(context)
+                            tempPhotoUri = uri
+                            cameraLauncher.launch(uri)
+                        },
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        Text("Retake")
+                    }
+
+                    OutlinedButton(
+                        onClick = {
+                            photoUri = null
+                            tempPhotoUri = null
+                        },
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        Text("Remove")
+                    }
+                }
             }
+        }
 
             // Notes
             OutlinedTextField(
@@ -321,10 +358,10 @@ fun AddParkingContent(
 
             // Save
             Button(
-                onClick = { 
+                onClick = {
                     // If it's from existing community, we save it ONLY to Room (isPublic=false in addNewParking call)
                     val finalIsPublic = if (isFromExisting) false else isSharedWithCommunity
-                    onSaveParking(selectedMinutes, name, description, latitude, longitude, photoUri?.toString() ?: "", price, amountOfSpots, finalIsPublic) 
+                    onSaveParking(selectedMinutes, name, description, latitude, longitude, photoUri?.toString() ?: "", price, amountOfSpots, finalIsPublic)
                 },
                 modifier = Modifier.fillMaxWidth().padding(bottom = 32.dp),
                 enabled = name.isNotBlank()
