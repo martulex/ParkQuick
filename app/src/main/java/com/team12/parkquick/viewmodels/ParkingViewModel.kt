@@ -7,11 +7,16 @@ import com.team12.parkquick.database.AppRoomDatabase
 import com.team12.parkquick.database.ParkingCard
 import com.team12.parkquick.database.RoomParkingCardRepository
 import com.team12.parkquick.repository.ParkingRepository
+import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.ktx.toObjects
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.tasks.await
 import java.util.UUID
 
 class ParkingViewModel(application: Application) : AndroidViewModel(application) {
@@ -19,30 +24,55 @@ class ParkingViewModel(application: Application) : AndroidViewModel(application)
     private val database = AppRoomDatabase.getInstance(application)
     private val dao = database.parkingCardDao()
     private val repository = RoomParkingCardRepository(dao)
+    private val firestore = FirebaseFirestore.getInstance()
+
+    // Remote Karten aus Firebase
+    private val _remoteParkingCards = MutableStateFlow<List<ParkingCard>>(emptyList())
 
     // Die Live-Daten aus Room (Flow)
-    val allParkings: StateFlow<List<ParkingCard>> = repository.getAllParkingCards()
+    val localParkings: StateFlow<List<ParkingCard>> = repository.getAllParkingCards()
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
-    val activeParkings = allParkings.map { list -> list.filter { it.isInParking } }
+    // Alle Parkplätze kombiniert (für die Map-Marker)
+    val allAvailableParkings = combine(localParkings, _remoteParkingCards) { local, remote ->
+        (local + remote).distinctBy { it.id }
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
+    val activeParkings = localParkings.map { list -> list.filter { it.isInParking } }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
         
-    val historyParkings = allParkings.map { list -> list.filter { !it.isInParking } }
+    val historyParkings = localParkings.map { list -> list.filter { !it.isInParking } }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
-    val discoverParkings = allParkings.map { list -> list.filter { it.isInDiscover } }
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+    init {
+        fetchRemoteParkings()
+    }
+
+    private fun fetchRemoteParkings() {
+        viewModelScope.launch {
+            try {
+                val snapshot = firestore.collection("public_parkings").get().await()
+                _remoteParkingCards.value = snapshot.toObjects<ParkingCard>()
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
+    }
 
     /**
      * Creates and adds a new parking entry to the repository.
-     *
-     * @param minutes Duration of parking in minutes.
-     * @param name Name of the parking spot.
-     * @param notes Optional notes about the parking spot.
-     * @param lat Latitude of the parking spot.
-     * @param lng Longitude of the parking spot.
      */
-    fun addNewParking(minutes: Long, name: String, notes: String? = null, lat: Double, lng: Double, image: String ="") {
+    fun addNewParking(
+        minutes: Long, 
+        name: String, 
+        notes: String? = null, 
+        lat: Double, 
+        lng: Double, 
+        image: String = "",
+        price: Float = 0f,
+        spots: Int = 1,
+        isPublic: Boolean = false
+    ) {
         viewModelScope.launch {
             val startTime = System.currentTimeMillis()
             val endTime = startTime + (minutes * 60 * 1000)
@@ -51,20 +81,32 @@ class ParkingViewModel(application: Application) : AndroidViewModel(application)
                 id = UUID.randomUUID().toString(),
                 name = name.ifEmpty { "Unbenannter Parkplatz" },
                 description = notes ?: "",
-                price = 0f,
+                price = price,
                 latitude = lat,
                 longitude = lng,
                 parkingTimeStart = startTime,
                 parkingTimeEnd = endTime,
                 isInParking = true,
                 image = image,
-                amountOfSpots = 1,
+                amountOfSpots = spots,
+                isSharedWithCommunity = isPublic,
                 openTime = "00:00",
                 closeTime = "23:59",
             )
 
-            // In die Datenbank schreiben
+            // In die lokale Datenbank schreiben
             repository.insert(newSpot)
+
+            // In Firebase schreiben, wenn öffentlich
+            if (isPublic) {
+                try {
+                    firestore.collection("public_parkings")
+                        .document(newSpot.id)
+                        .set(newSpot)
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                }
+            }
 
             // Alarm Manager Timer starten
             ParkingRepository.scheduleParkingAlarm(getApplication(), newSpot)

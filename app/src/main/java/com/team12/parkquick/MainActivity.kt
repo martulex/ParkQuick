@@ -82,17 +82,21 @@ fun ParkQuickApp(
 
     val activeParkings by parkingViewModel.activeParkings.collectAsStateWithLifecycle(emptyList())
     val historyParkings by parkingViewModel.historyParkings.collectAsStateWithLifecycle(emptyList())
+    val allAvailableParkings by parkingViewModel.allAvailableParkings.collectAsStateWithLifecycle(emptyList())
     val settings by usersettingsViewModel.settingsState.collectAsStateWithLifecycle()
 
     ParkQuickAppContent(
         navController = navController,
         activeParkings = activeParkings,
         historyParkings = historyParkings,
+        allAvailableParkings = allAvailableParkings,
         onGetParkingById = { id ->
             // In-memory lookup from the current state
             activeParkings.find { it.id == id } ?: historyParkings.find { it.id == id }
         },
-        onSaveParking = { minutes, name, notes, lat, lng, image -> parkingViewModel.addNewParking(minutes, name, notes, lat, lng, image) },
+        onSaveParking = { minutes, name, notes, lat, lng, image, price, spots, isPublic ->
+            parkingViewModel.addNewParking(minutes, name, notes, lat, lng, image, price, spots, isPublic)
+        },
         onDeleteParking = { parkingViewModel.deleteParking(it) },
         onFinishParking = { parkingViewModel.endParking(it) },
         isDarkModeEnabled = settings.isDarkModeEnabled,
@@ -107,8 +111,9 @@ fun ParkQuickAppContent(
     navController: NavHostController,
     activeParkings: List<ParkingCard>,
     historyParkings: List<ParkingCard>,
+    allAvailableParkings: List<ParkingCard>,
     onGetParkingById: (String) -> ParkingCard?,
-    onSaveParking: (Long, String, String?, Double, Double, String) -> Unit,
+    onSaveParking: (Long, String, String?, Double, Double, String, Float, Int, Boolean) -> Unit,
     onDeleteParking: (ParkingCard) -> Unit,
     onFinishParking: (ParkingCard) -> Unit,
     isDarkModeEnabled: Boolean,
@@ -158,8 +163,9 @@ fun ParkQuickAppContent(
             composable<AddParkingRoute> {
                 AddParkingContent(
                     onNavigateBack = { navController.popBackStack() },
-                    onSaveParking = { minutes, name, notes, lat, lng, image ->
-                        onSaveParking(minutes, name, notes, lat, lng, image)
+                    existingSpots = allAvailableParkings,
+                    onSaveParking = { minutes, name, notes, lat, lng, image, price, spots, isPublic ->
+                        onSaveParking(minutes, name, notes, lat, lng, image, price, spots, isPublic)
                         navController.popBackStack()
                     }
                 )
@@ -292,8 +298,9 @@ fun ParkQuickAppPreview() {
             navController = navController,
             activeParkings = sampleParkings,
             historyParkings = emptyList(),
+            allAvailableParkings = sampleParkings,
             onGetParkingById = { id -> sampleParkings.find { it.id == id } },
-            onSaveParking = { _, _, _, _, _, _ -> },
+            onSaveParking = { _, _, _, _, _, _, _, _, _ -> },
             onDeleteParking = {},
             onFinishParking = {},
             isDarkModeEnabled = false,

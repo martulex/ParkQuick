@@ -1,81 +1,64 @@
 package com.team12.parkquick.ui.screens
 
+import android.Manifest
 import android.app.DatePickerDialog
 import android.app.TimePickerDialog
+import android.content.Context
+import android.content.pm.PackageManager
+import android.net.Uri
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.imePadding
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Map
 import androidx.compose.material.icons.filled.PhotoCamera
-import androidx.compose.material3.Button
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FilterChip
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.window.Dialog
-import androidx.compose.ui.window.DialogProperties
-import com.google.android.gms.maps.model.LatLng
+import androidx.core.content.ContextCompat
+import androidx.core.content.FileProvider
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import coil.compose.rememberAsyncImagePainter
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.location.Priority
+import com.google.android.gms.maps.model.LatLng
+import androidx.compose.ui.tooling.preview.Preview
+import com.team12.parkquick.ui.theme.ParkQuickTheme
+import com.team12.parkquick.database.ParkingCard
+
 import com.team12.parkquick.ui.components.LocationPickerMap
 import com.team12.parkquick.ui.components.StaticMapPreview
 import com.team12.parkquick.viewmodels.ParkingViewModel
+import java.io.File
 import java.time.Duration
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.LocalTime
 import java.util.Calendar
-import android.Manifest
-import android.content.pm.PackageManager
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
-import androidx.core.content.ContextCompat
-import androidx.compose.runtime.LaunchedEffect
-import android.content.Context
-import android.net.Uri
-import androidx.compose.foundation.Image
-import androidx.compose.ui.layout.ContentScale
-import androidx.core.content.FileProvider
-import coil.compose.rememberAsyncImagePainter
-import java.io.File
 
+enum class AddParkingStep {
+    MAP, FORM
+}
 
 @Composable
-fun AddParkingScreen(onNavigateBack : () -> Unit, viewModel: ParkingViewModel) {
+fun AddParkingScreen(onNavigateBack: () -> Unit, viewModel: ParkingViewModel) {
+    val existingSpots by viewModel.allAvailableParkings.collectAsStateWithLifecycle()
+
     AddParkingContent(
         onNavigateBack = onNavigateBack,
-        onSaveParking = { selectedMinutes, name, notes, lat, lng, image ->
-            viewModel.addNewParking(selectedMinutes, name, notes, lat, lng, image)
+        existingSpots = existingSpots,
+        onSaveParking = { minutes, name, notes, lat, lng, image, price, spots, isPublic ->
+            viewModel.addNewParking(minutes, name, notes, lat, lng, image, price, spots, isPublic)
             onNavigateBack()
         }
     )
@@ -85,15 +68,30 @@ fun AddParkingScreen(onNavigateBack : () -> Unit, viewModel: ParkingViewModel) {
 @Composable
 fun AddParkingContent(
     onNavigateBack: () -> Unit,
-    onSaveParking: (Long, String, String?, Double, Double, String) -> Unit
+    existingSpots: List<ParkingCard>,
+    onSaveParking: (Long, String, String?, Double, Double, String, Float, Int, Boolean) -> Unit
 ) {
     val context = LocalContext.current
+    var currentStep by remember { mutableStateOf(AddParkingStep.MAP) }
+
+    // Navigation and Selection state
+    var selectedExistingSpot by remember { mutableStateOf<ParkingCard?>(null) }
+
+    // Form States
+    var name by remember { mutableStateOf("") }
     var description by remember { mutableStateOf("") }
     var selectedMinutes by remember { mutableStateOf(60L) }
-    var name by remember { mutableStateOf("") }
-    var isCustomSelected by remember { mutableStateOf(false) }
+    var price by remember { mutableStateOf(0f) }
+    var amountOfSpots by remember { mutableStateOf(1) }
+    var isSharedWithCommunity by remember { mutableStateOf(false) }
+    
+    var isCustomTimeSelected by remember { mutableStateOf(false) }
     var photoUri by remember { mutableStateOf<Uri?>(null) }
     var tempPhotoUri by remember { mutableStateOf<Uri?>(null) }
+
+    // GPS States
+    var latitude by remember { mutableStateOf(50.9375) } // Default Köln
+    var longitude by remember { mutableStateOf(6.9603) }
 
     val cameraLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.TakePicture()
@@ -103,12 +101,6 @@ fun AddParkingContent(
         }
     }
 
-    // GPS States
-    var latitude by remember { mutableStateOf(50.9375) } // Default Köln
-    var longitude by remember { mutableStateOf(6.9603) }
-    var isLocationPicked by remember { mutableStateOf(false) }
-    var showMapPicker by remember { mutableStateOf(false) }
-
     // Permission Launcher
     val permissionLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestMultiplePermissions()
@@ -116,131 +108,80 @@ fun AddParkingContent(
         val granted = permissions.getOrDefault(Manifest.permission.ACCESS_FINE_LOCATION, false) ||
                       permissions.getOrDefault(Manifest.permission.ACCESS_COARSE_LOCATION, false)
         if (granted) {
-            showMapPicker = true
+            // Permission granted
         }
     }
 
-    fun checkLocationPermissionAndOpenMap() {
+    LaunchedEffect(Unit) {
         val fineLocationPermission = ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION)
         val coarseLocationPermission = ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_COARSE_LOCATION)
 
-        if (fineLocationPermission == PackageManager.PERMISSION_GRANTED || coarseLocationPermission == PackageManager.PERMISSION_GRANTED) {
-            showMapPicker = true
-        } else {
+        if (fineLocationPermission != PackageManager.PERMISSION_GRANTED && coarseLocationPermission != PackageManager.PERMISSION_GRANTED) {
             permissionLauncher.launch(arrayOf(Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION))
-        }
-    }
-
-    // Optional: Get current location when map is shown
-    val fusedLocationClient = remember { LocationServices.getFusedLocationProviderClient(context) }
-    LaunchedEffect(showMapPicker) {
-        if (showMapPicker) {
-            try {
-                fusedLocationClient.getCurrentLocation(Priority.PRIORITY_HIGH_ACCURACY, null)
-                    .addOnSuccessListener { location ->
-                        location?.let {
-                            latitude = it.latitude
-                            longitude = it.longitude
-                        }
-                    }
-            } catch (e: SecurityException) {
-                // Should be handled by permission check above
-            }
-        }
-    }
-
-    fun showDateTimePicker() {
-        val currentCalendar = Calendar.getInstance()
-
-        DatePickerDialog(
-            context,
-            { _, year, month, dayOfMonth ->
-                TimePickerDialog(
-                    context,
-                    { _, hourOfDay, minute ->
-                        val targetDateTime = LocalDateTime.of(
-                            LocalDate.of(year, month + 1, dayOfMonth),
-                            LocalTime.of(hourOfDay, minute)
-                        )
-                        val diffInMinutes = Duration.between(LocalDateTime.now(), targetDateTime).toMinutes()
-
-                        if (diffInMinutes > 0) {
-                            selectedMinutes = diffInMinutes
-                            isCustomSelected = true
-                        }
-                    },
-                    currentCalendar.get(Calendar.HOUR_OF_DAY),
-                    currentCalendar.get(Calendar.MINUTE),
-                    true
-                ).show()
-            },
-            currentCalendar.get(Calendar.YEAR),
-            currentCalendar.get(Calendar.MONTH),
-            currentCalendar.get(Calendar.DAY_OF_MONTH)
-        ).show()
-    }
-
-    if (showMapPicker) {
-        Dialog(
-            onDismissRequest = { showMapPicker = false },
-            properties = DialogProperties(usePlatformDefaultWidth = false)
-        ) {
-            Surface(modifier = Modifier.fillMaxSize()) {
-                Column {
-                    LocationPickerMap(
-                        initialPosition = LatLng(latitude, longitude),
-                        onLocationPicked = {
-                            latitude = it.latitude
-                            longitude = it.longitude
-                            isLocationPicked = true
-                        },
-                        modifier = Modifier.weight(1f)
-                    )
-                    Button(
-                        onClick = {
-                            isLocationPicked = true
-                            showMapPicker = false
-                        },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(16.dp)
-                    ) {
-                        Text("Confirm Location")
-                    }
-                }
-            }
-        }
-    }
-
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .verticalScroll(rememberScrollState())
-            .padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(20.dp)
-    ) {
-        // Location
-        Text(text = "Location", style = MaterialTheme.typography.titleMedium)
-
-        if (!isLocationPicked) {
-            OutlinedButton(
-                onClick = { checkLocationPermissionAndOpenMap() },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(150.dp),
-                shape = RoundedCornerShape(12.dp)
-            ) {
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Icon(
-                        imageVector = Icons.Default.Map,
-                        contentDescription = null,
-                        modifier = Modifier.size(40.dp)
-                    )
-                    Spacer(modifier = Modifier.height(12.dp))
-                    Text("Add a parking location")
-                }
-            }
         } else {
+            val fusedLocationClient = LocationServices.getFusedLocationProviderClient(context)
+            fusedLocationClient.getCurrentLocation(Priority.PRIORITY_HIGH_ACCURACY, null)
+                .addOnSuccessListener { location ->
+                    location?.let {
+                        latitude = it.latitude
+                        longitude = it.longitude
+                    }
+                }
+        }
+    }
+
+    if (currentStep == AddParkingStep.MAP) {
+        Box(modifier = Modifier.fillMaxSize()) {
+            LocationPickerMap(
+                initialPosition = LatLng(latitude, longitude),
+                existingSpots = existingSpots,
+                onLocationPicked = {
+                    latitude = it.latitude
+                    longitude = it.longitude
+                    selectedExistingSpot = null // Clear selection if user moves pin to new location
+                },
+                onSpotSelected = { spot ->
+                    selectedExistingSpot = spot
+                    latitude = spot.latitude
+                    longitude = spot.longitude
+                },
+                modifier = Modifier.fillMaxSize()
+            )
+            Button(
+                onClick = { 
+                    selectedExistingSpot?.let { spot ->
+                        // Pre-fill logic only if spot selected
+                        name = spot.name
+                        description = spot.description
+                        price = spot.price
+                        amountOfSpots = spot.amountOfSpots
+                        latitude = spot.latitude
+                        longitude = spot.longitude
+                        isSharedWithCommunity = spot.isSharedWithCommunity
+                    }
+                    currentStep = AddParkingStep.FORM 
+                },
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .fillMaxWidth()
+                    .padding(32.dp)
+            ) {
+                Text(if (selectedExistingSpot != null) "Continue with this parking spot" else "Confirm Location & Continue")
+            }
+        }
+    } else {
+        val isFromExisting = selectedExistingSpot != null
+        
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .verticalScroll(rememberScrollState())
+                .padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(20.dp)
+        ) {
+            Text(text = "Parking Details", style = MaterialTheme.typography.headlineSmall)
+
+            // Preview Map
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -253,112 +194,147 @@ fun AddParkingContent(
                     lng = longitude,
                     modifier = Modifier.fillMaxSize()
                 )
-
-                // Button to change location
-                IconButton(
-                    onClick = { checkLocationPermissionAndOpenMap() },
-                    modifier = Modifier
-                        .align(Alignment.TopEnd)
-                        .padding(8.dp)
-                        .background(MaterialTheme.colorScheme.surface, RoundedCornerShape(8.dp))
+                OutlinedButton(
+                    onClick = { currentStep = AddParkingStep.MAP },
+                    modifier = Modifier.align(Alignment.TopEnd).padding(8.dp),
+                    shape = RoundedCornerShape(8.dp)
                 ) {
-                    Icon(Icons.Default.Map, contentDescription = "Change Location")
+                    Text("Change")
                 }
             }
-        }
 
-        // Timer: Schnellauswahl für Zeiten
-        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            // Text-Anzeige formatiert große Minutenzahlen lesbar in Stunden um, falls über Custom gewählt
-            val displayText = if (selectedMinutes >= 60) "${selectedMinutes / 60}h ${selectedMinutes % 60}m" else "${selectedMinutes} min"
-            Text(text = "Set Timer: $displayText", style = MaterialTheme.typography.titleMedium)
+            // Name
+            OutlinedTextField(
+                value = name,
+                onValueChange = { name = it },
+                label = { Text("Name (e.g. Cinema, Work)") },
+                modifier = Modifier.fillMaxWidth(),
+                singleLine = true,
+                readOnly = isFromExisting
+            )
 
-            Row(
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                FilterChip(
-                    selected = selectedMinutes == 30L && !isCustomSelected,
-                    onClick = { selectedMinutes = 30L; isCustomSelected = false },
-                    label = { Text("30m") }
+            // Price & Spots
+            Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+                OutlinedTextField(
+                    value = if (price == 0f) "" else price.toString(),
+                    onValueChange = { price = it.toFloatOrNull() ?: 0f },
+                    label = { Text("Price (€/h)") },
+                    modifier = Modifier.weight(1f),
+                    readOnly = isFromExisting
                 )
-                FilterChip(
-                    selected = selectedMinutes == 60L && !isCustomSelected,
-                    onClick = { selectedMinutes = 60L; isCustomSelected = false },
-                    label = { Text("1h") }
-                )
-                FilterChip(
-                    selected = selectedMinutes == 120L && !isCustomSelected,
-                    onClick = { selectedMinutes = 120L; isCustomSelected = false },
-                    label = { Text("2h") }
-                )
-                // Der Custom-Button öffnet jetzt die nativen Picker-Dialoge
-                FilterChip(
-                    selected = isCustomSelected,
-                    onClick = { showDateTimePicker() },
-                    label = { Text("Custom") }
-                )
-            }
-        }
-
-        // Photo Sektion updated
-        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            Text(text = "Photo", style = MaterialTheme.typography.titleMedium)
-
-            photoUri?.let { uri ->
-                Image(
-                    painter = rememberAsyncImagePainter(uri),
-                    contentDescription = "Parking photo",
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(180.dp)
-                        .clip(RoundedCornerShape(12.dp)),
-                    contentScale = ContentScale.Crop
+                OutlinedTextField(
+                    value = amountOfSpots.toString(),
+                    onValueChange = { amountOfSpots = it.toIntOrNull() ?: 1 },
+                    label = { Text("Spots") },
+                    modifier = Modifier.weight(1f),
+                    readOnly = isFromExisting
                 )
             }
 
-            OutlinedButton(
-                onClick = {
-                    val uri = createImageUri(context)
-                    tempPhotoUri = uri
-                    cameraLauncher.launch(uri)
+            // Public Toggle (Only show if NOT from existing community spot)
+            if (!isFromExisting) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Column {
+                        Text("Share with Community", style = MaterialTheme.typography.bodyLarge)
+                        Text("Make this spot visible to others", style = MaterialTheme.typography.bodySmall)
+                    }
+                    Switch(
+                        checked = isSharedWithCommunity,
+                        onCheckedChange = { isSharedWithCommunity = it }
+                    )
+                }
+            }
+
+            // Timer
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                val displayText = if (selectedMinutes >= 60) "${selectedMinutes / 60}h ${selectedMinutes % 60}m" else "${selectedMinutes} min"
+                Text(text = "Set Timer: $displayText", style = MaterialTheme.typography.titleMedium)
+
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    FilterChip(
+                        selected = selectedMinutes == 30L && !isCustomTimeSelected,
+                        onClick = { selectedMinutes = 30L; isCustomTimeSelected = false },
+                        label = { Text("30m") }
+                    )
+                    FilterChip(
+                        selected = selectedMinutes == 60L && !isCustomTimeSelected,
+                        onClick = { selectedMinutes = 60L; isCustomTimeSelected = false },
+                        label = { Text("1h") }
+                    )
+                    FilterChip(
+                        selected = isCustomTimeSelected,
+                        onClick = {
+                            val calendar = Calendar.getInstance()
+                            DatePickerDialog(context, { _, y, m, d ->
+                                TimePickerDialog(context, { _, h, min ->
+                                    val target = LocalDateTime.of(LocalDate.of(y, m + 1, d), LocalTime.of(h, min))
+                                    val diff = Duration.between(LocalDateTime.now(), target).toMinutes()
+                                    if (diff > 0) {
+                                        selectedMinutes = diff
+                                        isCustomTimeSelected = true
+                                    }
+                                }, calendar.get(Calendar.HOUR_OF_DAY), calendar.get(Calendar.MINUTE), true).show()
+                            }, calendar.get(Calendar.YEAR), calendar.get(Calendar.MONTH), calendar.get(Calendar.DAY_OF_MONTH)).show()
+                        },
+                        label = { Text("Custom") }
+                    )
+                }
+            }
+
+            // Photo
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Text(text = "Photo", style = MaterialTheme.typography.titleMedium)
+                photoUri?.let { uri ->
+                    Image(
+                        painter = rememberAsyncImagePainter(uri),
+                        contentDescription = null,
+                        modifier = Modifier.fillMaxWidth().height(180.dp).clip(RoundedCornerShape(12.dp)),
+                        contentScale = ContentScale.Crop
+                    )
+                }
+                OutlinedButton(
+                    onClick = {
+                        val uri = createImageUri(context)
+                        tempPhotoUri = uri
+                        cameraLauncher.launch(uri)
+                    },
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Icon(Icons.Default.PhotoCamera, contentDescription = null)
+                    Spacer(Modifier.width(8.dp))
+                    Text("Take Photo")
+                }
+            }
+
+            // Notes
+            OutlinedTextField(
+                value = description,
+                onValueChange = { description = it },
+                label = { Text("Description/Notes") },
+                modifier = Modifier.fillMaxWidth(),
+                minLines = 3
+            )
+
+            // Save
+            Button(
+                onClick = { 
+                    // If it's from existing community, we save it ONLY to Room (isPublic=false in addNewParking call)
+                    val finalIsPublic = if (isFromExisting) false else isSharedWithCommunity
+                    onSaveParking(selectedMinutes, name, description, latitude, longitude, photoUri?.toString() ?: "", price, amountOfSpots, finalIsPublic) 
                 },
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth().padding(bottom = 32.dp),
+                enabled = name.isNotBlank()
             ) {
-                Icon(Icons.Default.PhotoCamera, contentDescription = null)
-                Spacer(Modifier.width(8.dp))
-                Text("Take Photo")
+                Text("Save Parking Spot")
             }
-        }
-
-
-        OutlinedTextField(
-            value = name,
-            onValueChange = {name = it},
-            label = {Text("Name (e.g. Cinema, Work)")},
-            modifier = Modifier.fillMaxWidth(),
-            singleLine = true
-        )
-
-        // Notes
-        OutlinedTextField(
-            value = description,
-            onValueChange = { description = it },
-            label = { Text("Description (e.g. Location, Space ...)") },
-            modifier = Modifier.fillMaxWidth(),
-            minLines = 3
-        )
-
-        // Bestätigen
-        val isFormValid = name.isNotBlank() && isLocationPicked
-        Button(
-            onClick = { onSaveParking(selectedMinutes, name, description, latitude, longitude, photoUri?.toString() ?: "") },
-            modifier = Modifier.fillMaxWidth(),
-            enabled = isFormValid
-        ) {
-            Text("Save Parking Spot")
         }
     }
 }
+
 private fun createImageUri(context: Context): Uri {
     val imageFile = File(
         context.filesDir,
@@ -370,4 +346,28 @@ private fun createImageUri(context: Context): Uri {
         "${context.packageName}.fileprovider",
         imageFile
     )
+}
+
+@Preview(showBackground = true)
+@Composable
+fun AddParkingContentPreview() {
+    ParkQuickTheme {
+        Surface {
+            AddParkingContent(
+                onNavigateBack = {},
+                existingSpots = listOf(
+                    ParkingCard(
+                        id = "1",
+                        name = "Sample Spot",
+                        latitude = 50.9375,
+                        longitude = 6.9603,
+                        price = 1.5f,
+                        amountOfSpots = 10,
+                        isSharedWithCommunity = true
+                    )
+                ),
+                onSaveParking = { _, _, _, _, _, _, _, _, _ -> }
+            )
+        }
+    }
 }
