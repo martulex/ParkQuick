@@ -42,6 +42,7 @@ import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.team12.parkquick.database.ParkingCard
 import com.team12.parkquick.ui.components.ParkingCard
+import com.team12.parkquick.ui.components.StaticMapPreview
 import com.team12.parkquick.ui.theme.ParkQuickTheme
 import com.team12.parkquick.utilities.LocationUtils
 
@@ -187,19 +188,29 @@ fun HistoryParkingCard(
     ) {
         Column(modifier = Modifier.fillMaxSize()) {
 
-            AsyncImage(
-                model = ImageRequest.Builder(LocalContext.current)
-                    .data(card.image.ifEmpty { null })
-                    .crossfade(true)
-                    .build(),
-                placeholder = painterResource(id = android.R.drawable.ic_menu_gallery),
-                error = painterResource(id = android.R.drawable.ic_menu_gallery),
-                contentDescription = "Preview",
-                contentScale = ContentScale.Crop,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(90.dp)
-            )
+            if (card.image.isNotBlank()) {
+                AsyncImage(
+                    model = ImageRequest.Builder(LocalContext.current)
+                        .data(card.image)
+                        .crossfade(true)
+                        .build(),
+                    placeholder = painterResource(id = android.R.drawable.ic_menu_gallery),
+                    error = painterResource(id = android.R.drawable.ic_menu_gallery),
+                    contentDescription = "Preview",
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(90.dp)
+                )
+            } else {
+                StaticMapPreview(
+                    lat = card.latitude,
+                    lng = card.longitude,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(90.dp)
+                )
+            }
 
             Column(
                 modifier = Modifier
