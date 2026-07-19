@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "937138313491",
+    "project_id": "project-8b0ef9f9-1ca5-4339-bf0",
+    "storage_bucket": "project-8b0ef9f9-1ca5-4339-bf0.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:937138313491:android:faed240ddb47a42c12a2e6",
+        "android_client_info": {
+          "package_name": "com.team12.parkquick"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCNz0l-fBfQKWJwgNO8VhP70p0tIzonnXo"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
