@@ -84,6 +84,7 @@ fun ParkQuickApp(
     val historyParkings by parkingViewModel.historyParkings.collectAsStateWithLifecycle(emptyList())
     val allAvailableParkings by parkingViewModel.allAvailableParkings.collectAsStateWithLifecycle(emptyList())
     val settings by usersettingsViewModel.settingsState.collectAsStateWithLifecycle()
+    val localParkings by parkingViewModel.localParkings.collectAsStateWithLifecycle(emptyList())
 
     ParkQuickAppContent(
         navController = navController,
@@ -102,7 +103,8 @@ fun ParkQuickApp(
         isDarkModeEnabled = settings.isDarkModeEnabled,
         notificationLeadTime = settings.notificationLeadTime,
         onToggleDarkMode = { usersettingsViewModel.toggleDarkMode() },
-        onNotificationLeadTimeChange = { usersettingsViewModel.setNotificationLeadTime(it) }
+        onNotificationLeadTimeChange = { usersettingsViewModel.setNotificationLeadTime(it) },
+        mySpots = localParkings
     )
 }
 
@@ -119,7 +121,8 @@ fun ParkQuickAppContent(
     isDarkModeEnabled: Boolean,
     notificationLeadTime: Int,
     onToggleDarkMode: () -> Unit,
-    onNotificationLeadTimeChange: (Int) -> Unit
+    onNotificationLeadTimeChange: (Int) -> Unit,
+    mySpots: List<ParkingCard>
 ) {
     Scaffold(
         topBar = {
@@ -134,11 +137,14 @@ fun ParkQuickAppContent(
             startDestination = HomeRoute,
             modifier = Modifier.padding(innerPadding)
         ) {
+
             composable<HomeRoute> {
                 HomeScreen(
                     onNavigateToAddParking = { navController.navigate(AddParkingRoute) },
                     parkings = activeParkings,
-                    onCardClick = { navController.navigate(ParkingDetailRoute(parkingId = it)) }
+                    historyParkings = historyParkings,
+                    onCardClick = { navController.navigate(ParkingDetailRoute(parkingId = it)) },
+                    mySpots = mySpots
                 )
             }
             composable<ParkingDetailRoute> { backStackEntry ->
@@ -306,7 +312,8 @@ fun ParkQuickAppPreview() {
             isDarkModeEnabled = false,
             notificationLeadTime = 10,
             onToggleDarkMode = {},
-            onNotificationLeadTimeChange = {}
+            onNotificationLeadTimeChange = {},
+            mySpots = emptyList()
         )
     }
 }
