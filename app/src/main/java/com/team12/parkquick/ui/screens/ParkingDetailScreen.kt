@@ -179,12 +179,6 @@ fun ParkingDetailContent(
             }
 
             HorizontalDivider(color = Color.LightGray)
-
-            Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                Text(text = "Parking Time:", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
-                Text(text = "From: ${sdf.format(Date(parkingObj.parkingTimeStart))}")
-                Text(text = "Until: ${sdf.format(Date(parkingObj.parkingTimeEnd))}")
-            }
         }
 
         Column(
