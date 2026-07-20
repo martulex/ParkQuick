@@ -25,18 +25,24 @@ class DatabaseViewModel(application: Application) : AndroidViewModel(application
     private val _remoteParkingCards = MutableStateFlow<List<ParkingCard>>(emptyList())
     val parkingCards: StateFlow<List<ParkingCard>> = _remoteParkingCards
 
+    private val _isRefreshing = MutableStateFlow(false)
+    val isRefreshing: StateFlow<Boolean> = _isRefreshing
+
     init {
         fetchRemoteParkings()
     }
 
     fun fetchRemoteParkings() {
         viewModelScope.launch {
+            _isRefreshing.value = true
             try {
                 val snapshot = firestore.collection("public_parkings").get().await()
                 val cards = snapshot.toObjects<ParkingCard>()
                 _remoteParkingCards.value = cards
             } catch (e: Exception) {
                 e.printStackTrace()
+            } finally {
+                _isRefreshing.value = false
             }
         }
     }

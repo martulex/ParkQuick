@@ -38,8 +38,12 @@ import androidx.compose.animation.expandVertically
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
+import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 
@@ -49,9 +53,12 @@ fun DiscoverScreen(
     onCardClick: (String) -> Unit
 ) {
     val discoverParkings by viewModel.parkingCards.collectAsStateWithLifecycle()
+    val isRefreshing by viewModel.isRefreshing.collectAsStateWithLifecycle()
 
     DiscoverScreenContent(
         cards = discoverParkings,
+        isRefreshing = isRefreshing,
+        onRefresh = { viewModel.fetchRemoteParkings() },
         onAddCardClick = { viewModel.addDummyCard() },
         onCardClick = onCardClick
     )
@@ -61,6 +68,8 @@ fun DiscoverScreen(
 @Composable
 fun DiscoverScreenContent(
     cards: List<ParkingCard>,
+    isRefreshing: Boolean,
+    onRefresh: () -> Unit,
     onAddCardClick: () -> Unit,
     onCardClick: (String) -> Unit,
     modifier: Modifier = Modifier
@@ -69,7 +78,6 @@ fun DiscoverScreenContent(
     var searchQuery by remember { mutableStateOf("") }
 
     Box(modifier = modifier.fillMaxSize()) {
-
         Column(modifier = Modifier.fillMaxSize()) {
             Text(
                 text = "Discover Nearby \nParking.",
@@ -78,7 +86,6 @@ fun DiscoverScreenContent(
                 ),
                 modifier = Modifier
                     .fillMaxWidth()
-                    // top = 0.dp funktioniert jetzt perfekt, da kein Scaffold mehr stört!
                     .padding(start = 16.dp, end = 16.dp, top = 0.dp, bottom = 16.dp)
             )
 
@@ -109,18 +116,30 @@ fun DiscoverScreenContent(
                 }
             }
 
-            if (cards.isEmpty()) {
-                Box(modifier = Modifier.fillMaxSize().weight(1f), contentAlignment = Alignment.Center) {
-                    Text("No parking spot data found.", style = MaterialTheme.typography.bodyLarge)
-                }
-            } else {
-                LazyColumn(
-                    modifier = Modifier.fillMaxSize().padding(horizontal = 16.dp),
-                    verticalArrangement = Arrangement.spacedBy(12.dp),
-                    contentPadding = PaddingValues(top = 0.dp, bottom = 100.dp) // Etwas mehr Platz für die ZWEI Buttons
-                ) {
-                    items(cards) { card ->
-                        ParkingCardItem(card = card, onClick = { onCardClick(card.id) })
+            // PullToRefreshBox needs to wrap the scrollable content directly to work reliably
+            PullToRefreshBox(
+                isRefreshing = isRefreshing,
+                onRefresh = onRefresh,
+                modifier = Modifier.weight(1f).fillMaxWidth()
+            ) {
+                if (cards.isEmpty()) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .verticalScroll(rememberScrollState()), // Needed to trigger refresh when empty
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text("No parking spot data found.", style = MaterialTheme.typography.bodyLarge)
+                    }
+                } else {
+                    LazyColumn(
+                        modifier = Modifier.fillMaxSize().padding(horizontal = 16.dp),
+                        verticalArrangement = Arrangement.spacedBy(12.dp),
+                        contentPadding = PaddingValues(top = 0.dp, bottom = 100.dp)
+                    ) {
+                        items(cards) { card ->
+                            ParkingCardItem(card = card, onClick = { onCardClick(card.id) })
+                        }
                     }
                 }
             }
@@ -128,8 +147,8 @@ fun DiscoverScreenContent(
 
         Column(
             modifier = Modifier
-                .align(Alignment.BottomEnd) // Pinnt die Buttons unten rechts fest
-                .padding(16.dp), // Abstand zum Bildschirmrand
+                .align(Alignment.BottomEnd)
+                .padding(16.dp),
             horizontalAlignment = Alignment.End,
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
@@ -262,8 +281,11 @@ fun DiscoverScreenPreviewEmpty() {
     ParkQuickTheme {
         DiscoverScreenContent(
             cards = emptyList(),
+            isRefreshing = false,
+            onRefresh = {},
             onAddCardClick = {},
             onCardClick = {}
+
         )
     }
 }
@@ -291,6 +313,8 @@ fun DiscoverScreenPreviewPopulated() {
     ParkQuickTheme {
         DiscoverScreenContent(
             cards = cardList,
+            isRefreshing = false,
+            onRefresh = {},
             onAddCardClick = {
                 val newFakeCard = ParkingCard(
                     id = UUID.randomUUID().toString(),
