@@ -9,6 +9,8 @@ import com.team12.parkquick.database.RoomParkingCardRepository
 import com.team12.parkquick.repository.ParkingRepository
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.ktx.toObjects
+import com.google.firebase.storage.FirebaseStorage
+import android.net.Uri
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -25,6 +27,7 @@ class ParkingViewModel(application: Application) : AndroidViewModel(application)
     private val dao = database.parkingCardDao()
     private val repository = RoomParkingCardRepository(dao)
     private val firestore = FirebaseFirestore.getInstance()
+    private val storage = FirebaseStorage.getInstance()
 
     // Remote Karten aus Firebase
     private val _remoteParkingCards = MutableStateFlow<List<ParkingCard>>(emptyList())
@@ -76,40 +79,78 @@ class ParkingViewModel(application: Application) : AndroidViewModel(application)
         viewModelScope.launch {
             val startTime = System.currentTimeMillis()
             val endTime = startTime + (minutes * 60 * 1000)
-
-            val newSpot = ParkingCard(
-                id = UUID.randomUUID().toString(),
-                name = name.ifEmpty { "Unbenannter Parkplatz" },
-                description = notes ?: "",
-                price = price,
-                latitude = lat,
-                longitude = lng,
-                parkingTimeStart = startTime,
-                parkingTimeEnd = endTime,
-                isInParking = true,
-                image = image,
-                amountOfSpots = spots,
-                isSharedWithCommunity = isPublic,
-                openTime = "00:00",
-                closeTime = "23:59",
-            )
-
-            // In die lokale Datenbank schreiben
-            repository.insert(newSpot)
+            val parkingId = UUID.randomUUID().toString()
+            
+            var finalImageUrl = image
 
             // In Firebase schreiben, wenn öffentlich
             if (isPublic) {
+                // Wenn ein lokales Bild vorhanden ist, lade es in Firebase Storage hoch
+                if (image.isNotBlank()) {
+                    try {
+                        val storageRef = storage.reference.child("parking_images/$parkingId.jpg")
+                        val fileUri = Uri.parse(image)
+                        
+                        // Upload
+                        storageRef.putFile(fileUri).await()
+                        
+                        // Download URL abrufen
+                        finalImageUrl = storageRef.downloadUrl.await().toString()
+                    } catch (e: Exception) {
+                        e.printStackTrace()
+                        // Bei Fehler behalten wir den lokalen Pfad (funktioniert nur lokal)
+                    }
+                }
+
+                val newSpot = ParkingCard(
+                    id = parkingId,
+                    name = name.ifEmpty { "Unbenannter Parkplatz" },
+                    description = notes ?: "",
+                    price = price,
+                    latitude = lat,
+                    longitude = lng,
+                    parkingTimeStart = startTime,
+                    parkingTimeEnd = endTime,
+                    isInParking = true,
+                    image = finalImageUrl,
+                    amountOfSpots = spots,
+                    isSharedWithCommunity = isPublic,
+                    openTime = "00:00",
+                    closeTime = "23:59",
+                )
+
                 try {
                     firestore.collection("public_parkings")
                         .document(newSpot.id)
                         .set(newSpot)
+                    
+                    // Auch lokal speichern (mit der Cloud-URL)
+                    repository.insert(newSpot)
+                    ParkingRepository.scheduleParkingAlarm(getApplication(), newSpot)
                 } catch (e: Exception) {
                     e.printStackTrace()
                 }
+            } else {
+                // Nicht öffentlich -> Normal lokal speichern
+                val newSpot = ParkingCard(
+                    id = parkingId,
+                    name = name.ifEmpty { "Unbenannter Parkplatz" },
+                    description = notes ?: "",
+                    price = price,
+                    latitude = lat,
+                    longitude = lng,
+                    parkingTimeStart = startTime,
+                    parkingTimeEnd = endTime,
+                    isInParking = true,
+                    image = image,
+                    amountOfSpots = spots,
+                    isSharedWithCommunity = isPublic,
+                    openTime = "00:00",
+                    closeTime = "23:59",
+                )
+                repository.insert(newSpot)
+                ParkingRepository.scheduleParkingAlarm(getApplication(), newSpot)
             }
-
-            // Alarm Manager Timer starten
-            ParkingRepository.scheduleParkingAlarm(getApplication(), newSpot)
         }
     }
 

@@ -92,8 +92,8 @@ fun ParkQuickApp(
         historyParkings = historyParkings,
         allAvailableParkings = allAvailableParkings,
         onGetParkingById = { id ->
-            // In-memory lookup from the current state
-            activeParkings.find { it.id == id } ?: historyParkings.find { it.id == id }
+            // allAvailableParkings already combines local and remote spots
+            allAvailableParkings.find { it.id == id }
         },
         onSaveParking = { minutes, name, notes, lat, lng, image, price, spots, isPublic ->
             parkingViewModel.addNewParking(minutes, name, notes, lat, lng, image, price, spots, isPublic)
