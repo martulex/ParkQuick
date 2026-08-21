@@ -1,4 +1,4 @@
-package com.team12.parkquick.repository
+package com.team12.parkquick.alarm
 
 import android.app.AlarmManager
 import android.app.PendingIntent
@@ -7,13 +7,11 @@ import android.content.Intent
 import android.os.Build
 import com.team12.parkquick.database.AppRoomDatabase
 import com.team12.parkquick.database.ParkingCard
-import com.team12.parkquick.receivers.ParkingAlarmReceiver
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
+import com.team12.parkquick.alarm.ParkingAlarmReceiver
 import com.team12.parkquick.settings.UserSettingsRepository
 import kotlinx.coroutines.flow.first
 
-object ParkingRepository {
+object ParkingAlarmScheduler {
 
     private fun getDao(context: Context) = AppRoomDatabase.getInstance(context).parkingCardDao()
 

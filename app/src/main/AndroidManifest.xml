@@ -46,7 +46,7 @@
         </provider>
 
         <receiver
-            android:name=".receivers.ParkingAlarmReceiver"
+            android:name=".alarm.ParkingAlarmReceiver"
             android:exported="false" />
     </application>
 
