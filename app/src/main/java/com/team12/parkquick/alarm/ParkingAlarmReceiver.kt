@@ -1,22 +1,22 @@
-package com.team12.parkquick.receivers
+package com.team12.parkquick.alarm
 
+import android.R
+import android.app.NotificationChannel
+import android.app.NotificationManager
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
-import android.app.NotificationChannel
-import android.app.NotificationManager
 import android.os.Build
 import androidx.core.app.NotificationCompat
-import com.team12.parkquick.repository.ParkingRepository
 
 class ParkingAlarmReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context?, intent: Intent?) {
         val parkingId = intent?.getStringExtra("PARKING_ID")
         val alarmType = intent?.getStringExtra("ALARM_TYPE")
-        
+
         if (parkingId != null && context != null) {
             showNotification(context, alarmType)
-            ParkingRepository.setParkingExpired(context, parkingId, alarmType)
+            ParkingAlarmScheduler.setParkingExpired(context, parkingId, alarmType)
         }
     }
 
@@ -39,7 +39,7 @@ class ParkingAlarmReceiver : BroadcastReceiver() {
         }
 
         val notification = NotificationCompat.Builder(context, channelId)
-            .setSmallIcon(android.R.drawable.ic_dialog_info)
+            .setSmallIcon(R.drawable.ic_dialog_info)
             .setContentTitle(title)
             .setContentText(text)
             .setPriority(NotificationCompat.PRIORITY_HIGH)

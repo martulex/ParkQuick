@@ -6,7 +6,7 @@ import androidx.lifecycle.viewModelScope
 import com.team12.parkquick.database.AppRoomDatabase
 import com.team12.parkquick.database.ParkingCard
 import com.team12.parkquick.database.RoomParkingCardRepository
-import com.team12.parkquick.repository.ParkingRepository
+import com.team12.parkquick.alarm.ParkingAlarmScheduler
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.ktx.toObjects
 import com.google.firebase.storage.FirebaseStorage
@@ -126,7 +126,7 @@ class ParkingViewModel(application: Application) : AndroidViewModel(application)
                     
                     // Auch lokal speichern (mit der Cloud-URL)
                     repository.insert(newSpot)
-                    ParkingRepository.scheduleParkingAlarm(getApplication(), newSpot)
+                    ParkingAlarmScheduler.scheduleParkingAlarm(getApplication(), newSpot)
                 } catch (e: Exception) {
                     e.printStackTrace()
                 }
@@ -149,7 +149,7 @@ class ParkingViewModel(application: Application) : AndroidViewModel(application)
                     closeTime = "23:59",
                 )
                 repository.insert(newSpot)
-                ParkingRepository.scheduleParkingAlarm(getApplication(), newSpot)
+                ParkingAlarmScheduler.scheduleParkingAlarm(getApplication(), newSpot)
             }
         }
     }
@@ -160,14 +160,14 @@ class ParkingViewModel(application: Application) : AndroidViewModel(application)
 
     fun deleteParking(card: ParkingCard) {
         viewModelScope.launch {
-            ParkingRepository.cancelParkingAlarm(getApplication(), card.id)
+            ParkingAlarmScheduler.cancelParkingAlarm(getApplication(), card.id)
             repository.deleteParkingCard(card)
         }
     }
 
     fun endParking(card: ParkingCard) {
         viewModelScope.launch {
-            ParkingRepository.cancelParkingAlarm(getApplication(), card.id)
+            ParkingAlarmScheduler.cancelParkingAlarm(getApplication(), card.id)
             repository.updateParkingCard(card.copy(isInParking = false, parkingTimeEnd = System.currentTimeMillis()))
         }
     }
