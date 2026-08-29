@@ -9,7 +9,7 @@ ParkQuick ist eine Android-Anwendung zur Verwaltung eigener Parkvorgänge und zu
 * Parkzeitverwaltung & Timer: Erstellung aktiver Parkvorgänge mit Restzeit-Countdown und Routing-Option.
 
 
-* Intelligente Erinnerungen: System-Benachrichtigungen bei Parkzeitende sowie einstellbarer Vorwarnzeit (Lead Time).
+* Intelligente Erinnerungen: System-Benachrichtigungen bei Parkzeitende sowie einstellbarer Vorwarnzeit.
 
 
 * Discover-Bereich: Laden von Community-Spots aus Cloud Firestore.
@@ -43,5 +43,5 @@ Zugunsten eines stabilen Kern-Loops im MVP zurückgestellt (in Teilen jedoch im 
 * **UI-Toolkit:** Jetpack Compose (Material 3)
 * **Architektur:** MVVM
 * **Persistenz:** Room (SQLite), Preferences DataStore
-* **Cloud:** Firebase Firestore & Storage
+* **Cloud:** Firebase
 * **System-APIs:** Android Location Framework, AlarmManager, BroadcastReceiver, NotificationManager
